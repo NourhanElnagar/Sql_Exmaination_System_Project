@@ -308,8 +308,6 @@ BEGIN
     END
 END;
 
---! update grade
-
 
 -- This trigger trg_StudentExamPreventUpdateGrade is executed after an update on the 'StudentExams' table.
 -- It prevents updates to the 'grade' column by rolling back the transaction and raising an error.
