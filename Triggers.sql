@@ -272,7 +272,6 @@ ON StudentExams
 INSTEAD OF DELETE
 AS
 BEGIN
-    ROLLBACK
     RAISERROR('No operations allowed on this Table', 13, 1)
 END;
 
@@ -332,6 +331,32 @@ BEGIN
             RAISERROR('you can only update Name, QuestionCount, and Duration', 13, 1)
     END
 END;
+
+
+
+--! StudentCourses
+
+
+--* insert
+
+CREATE TRIGGER trg_StudentCoursesPreventInsert
+ON StudentCourses
+INSTEAD OF INSERT
+AS
+BEGIN
+     RAISERROR('No operations allowed on this Table', 13, 1)
+END;
+
+
+--* update
+CREATE TRIGGER trg_StudentCoursesPreventUpdate
+ON StudentCourses
+INSTEAD OF UPDATE
+AS
+BEGIN
+     RAISERROR('No operations allowed on this Table', 13, 1)
+END;
+
 
 --! student
 
