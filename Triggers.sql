@@ -366,18 +366,24 @@ END;
 
 --! Student
 
--- Ensure TrackID and IntakeID exist, insert courses for student, else rollback.
+
 
 --* insert
 
-Create TRIGGER trg_StudentAfterInsert
+
+-- Ensures valid TrackID and IntakeID before insertion.
+-- Inserts student courses if valid, else raises error.
+
+alter TRIGGER trg_StudentAfterInsert
 ON Student
 AFTER INSERT
 AS
 BEGIN
-    DECLARE @StdID INT , @IntakeID INT , @TrackID INT
+    DECLARE  @IntackStartDate date ,  @StdID INT , @IntakeID INT , @TrackID INT
     SELECT @StdID = ID , @IntakeID = IntakeID , @TrackID = TrackID FROM inserted ;
-        IF NOT EXISTS(SELECT 1 FROM Track WHERE ID = @TrackID AND IntakeID = @IntakeID)
+    SELECT @IntackStartDate = StartDate FROM Track as t join Intake as i on t.IntakeID = i.ID AND i.ID = @IntakeID AND t.ID = @TrackID
+
+            IF NOT EXISTS(SELECT 1 FROM Track WHERE ID = @TrackID AND IntakeID = @IntakeID) OR (GETDATE() > @IntackStartDate)
             BEGIN
                 ROLLBACK
                 RAISERROR('Insert correct intake and track',13,1)
@@ -393,17 +399,28 @@ END;
 
 
 
+
 --* update
 
--- Prevents updates to IntakeID and TrackID columns in Student table.
-CREATE TRIGGER trg_StudentAfterUpdate
+
+
+
+-- This trigger prevents updates to TrackID or IntakeID in the Student table.
+-- It raises an error and rolls back the transaction if such updates are attempted.
+
+ALTER TRIGGER trg_StudentAfterUpdate
 ON Student
 AFTER UPDATE
 AS
 BEGIN
-    IF UPDATE(IntakeID) OR UPDATE(TrackID)
+    DECLARE @IntackStartDate date ,  @StdID INT , @IntakeID INT , @TrackID INT
+    SELECT @StdID = ID , @IntakeID = IntakeID , @TrackID = TrackID FROM inserted ;
+    SELECT @IntackStartDate = StartDate FROM Track as t join Intake as i on t.IntakeID = i.ID AND i.ID = @IntakeID AND t.ID = @TrackID
+
+     IF UPDATE(TrackID) OR UPDATE(IntakeID)
     BEGIN
         ROLLBACK
-        RAISERROR('you cannot update track or intake', 13, 1)
+        RAISERROR('you cannot update track or intake ', 13, 1)
     END
+
 END;
