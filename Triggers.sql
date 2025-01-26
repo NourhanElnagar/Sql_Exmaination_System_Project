@@ -369,6 +369,7 @@ END;
 -- Ensure TrackID and IntakeID exist, insert courses for student, else rollback.
 
 --* insert
+
 Create TRIGGER trg_StudentAfterInsert
 ON Student
 AFTER INSERT
