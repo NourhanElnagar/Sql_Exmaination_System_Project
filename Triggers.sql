@@ -449,3 +449,27 @@ BEGIN
         END
 
 END;
+
+
+--* update
+
+
+-- Prevents updating TrackCourses if students are registered in the old or new track
+-- Rolls back the transaction and raises an error if the condition is met
+
+
+ALTER TRIGGER trg_TrackCoursesPreventUpdate
+ON TrackCourses
+AFTER UPDATE
+AS
+BEGIN
+    DECLARE @OTrackID INT , @NTrackID  INT, @CrsID INT
+    SELECT @OTrackID = TrackID FROM deleted
+    SELECT @NTrackID = TrackID FROM inserted
+    IF exists(select 1 FROM Student WHERE TrackID = @OTrackID) OR exists(select 1 FROM Student WHERE TrackID = @NTrackID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('can not update course to track that have students registered',13,1)
+        END
+
+END;
