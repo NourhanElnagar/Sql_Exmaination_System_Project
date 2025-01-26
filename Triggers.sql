@@ -339,26 +339,56 @@ END;
 
 --* insert
 
+-- Prevents any insert operations
+-- on the StudentCourses table.
+
 CREATE TRIGGER trg_StudentCoursesPreventInsert
 ON StudentCourses
 INSTEAD OF INSERT
 AS
 BEGIN
-     RAISERROR('No operations allowed on this Table', 13, 1)
+    RAISERROR('No operations allowed on this Table', 13, 1)
 END;
 
 
 --* update
+
+-- Prevents any update operations on the StudentCourses table.
 CREATE TRIGGER trg_StudentCoursesPreventUpdate
 ON StudentCourses
 INSTEAD OF UPDATE
 AS
 BEGIN
-     RAISERROR('No operations allowed on this Table', 13, 1)
+    RAISERROR('No operations allowed on this Table', 13, 1)
 END;
 
 
---! student
+
+-- Ensure TrackID and IntakeID exist, insert courses for student, else rollback.
+
+--* insert
+Create TRIGGER trg_StudentAfterInsert
+ON Student
+AFTER INSERT
+AS
+BEGIN
+    DECLARE @StdID INT , @IntakeID INT , @TrackID INT
+    SELECT @StdID = ID , @IntakeID = IntakeID , @TrackID = TrackID FROM inserted ;
+        IF NOT EXISTS(SELECT 1 FROM Track WHERE ID = @TrackID AND IntakeID = @IntakeID)
+            BEGIN
+                ROLLBACK
+                RAISERROR('Insert correct intake and track',13,1)
+            END
+        ELSE
+            BEGIN
+                DISABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
+                INSERT into StudentCourses(StdID , CrsID)
+                    SELECT  @StdID , CrsID FROM Intake as i JOIN Track as t on t.IntakeID = i.ID AND t.ID = @TrackID AND i.ID = @IntakeID JOIN TrackCourses as tc on tc.TrackID = t.ID ;
+                ENABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
+            END
+END;
+
+
 
 --* update
 
