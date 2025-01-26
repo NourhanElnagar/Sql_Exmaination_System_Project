@@ -232,8 +232,66 @@ BEGIN
 END;
 
 
+-- Select rows from a Table or st' in schema 'SchemaName'
+SELECT * FROM StudentExams
+WHERE 	/* add search conditions here */
+GO
+
+
+--!   student exam
+
+--* insert
+CREATE TRIGGER trg_StudentExamInsertPrevent
+ON StudentExams
+After INSERT
+AS
+BEGIN
+    ROLLBACK
+    RAISERROR('No operations allowed on this Table',13,1)
+END;
+
+
+--* update
+
+alter TRIGGER trg_StudentExamPreventUpdateStdExam
+ON StudentExams
+After UPDATE
+AS
+BEGIN
+    IF  UPDATE(StdID) OR UPDATE(ExamID)
+    BEGIN
+        ROLLBACK
+        RAISERROR('you can not update these data',13,1)
+    END
+END;
+
+
+
+create TRIGGER trg_StudentExamPreventUpdateGrade
+ON StudentExams
+After UPDATE
+AS
+BEGIN
+    IF  UPDATE(grade)
+    BEGIN
+        ROLLBACK
+        RAISERROR('you can not update these data',13,1)
+    END
+END;
+
+--* delete
+
+create TRIGGER trg_StudentExamPreventDelete
+ON StudentExams
+INSTEAD OF DELETE
+AS
+BEGIN
+    BEGIN
+        ROLLBACK
+        RAISERROR('No operations allowed on this Table',13,1)
+    END
+END;
 
 --! Exam
 
 --* insert
-
