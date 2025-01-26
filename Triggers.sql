@@ -424,3 +424,28 @@ BEGIN
     END
 
 END;
+
+
+
+--! TrackCourses
+
+--* insert
+
+
+-- Prevents insertion of courses into tracks with registered students
+-- Rolls back transaction and raises an error if condition is met
+
+Create TRIGGER trg_TrackCoursesPreventInsert
+ON TrackCourses
+AFTER INSERT
+AS
+BEGIN
+    DECLARE @TrackID INT , @CrsID INT
+    SELECT @TrackID = TrackID FROM inserted
+    IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('can not add course to track that have students registered',13,1)
+        END
+
+END;
