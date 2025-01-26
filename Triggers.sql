@@ -478,17 +478,20 @@ END;
 --* delete
 
 
+
+
 -- Prevents deletion of a track course if students are registered
--- Rolls back the transaction and raises an error if condition is met
+-- Rolls back the transaction and raises an error if students exist
 
 
-create TRIGGER trg_TrackCoursesPreventDelete
+
+ALTER TRIGGER trg_TrackCoursesPreventDelete
 ON TrackCourses
 AFTER DELETE
 AS
 BEGIN
      DECLARE @TrackID INT
-     SELECT @TrackID = TrackID FROM inserted
+     SELECT @TrackID = TrackID FROM deleted
     IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
         BEGIN
             ROLLBACK
