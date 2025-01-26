@@ -233,7 +233,7 @@ END;
 
 
 -- Select rows from a Table or st' in schema 'SchemaName'
-SELECT * FROM StudentExams
+SELECT * FROM Exam
 WHERE 	/* add search conditions here */
 GO
 
@@ -295,3 +295,20 @@ END;
 --! Exam
 
 --* insert
+
+CREATE TRIGGER tgr_ExamInsteadOfInsert
+ON Exam
+INSTEAD OF INSERT
+AS
+BEGIN
+DECLARE @ID INT , @Name VARCHAR(50) , @CrsID INT , @InsID INT , @Duration DECIMAL(3,2) , @QuestionCount INT
+    SELECT @ID = ID ,@Name = Name , @CrsID = CrsID , @InsID = InsID , @Duration = Duration , @QuestionCount = QuestionCount  FROM inserted
+    IF EXISTS(SELECT 1 FROM CoursesInstructors WHERE CrsID = @CrsID AND InsID = @InsID)
+        BEGIN
+            insert into Exam(Name , StartTime , Duration , QuestionCount , TotalMark , CrsID , InsID)
+                values(@Name , NULL , @Duration , @QuestionCount , 0 , @CrsID , @InsID) ;
+        END
+    ELSE
+        RAISERROR('insert valid values',13,1)
+
+END;
