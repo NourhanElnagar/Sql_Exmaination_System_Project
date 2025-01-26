@@ -5,6 +5,10 @@ use ExaminationSystem
 
 --* insert
 
+-- This trigger prevents insertion into the 'question' table if the combination of CrsID and InsID
+-- does not exist in the 'CoursesInstructors' table. If the combination exists, the insertion proceeds.
+-- Otherwise, an error is raised.
+
 CREATE TRIGGER trg_InsteadOfInsert
 ON question
 INSTEAD OF INSERT
@@ -25,6 +29,11 @@ RAISERROR('operation failed',12,1)
 END;
 
 --* update
+
+-- This trigger trg_QuestionAfterUpdate is executed after an update on the 'question' table.
+-- It checks if the updated question is already in any student's exam and prevents the update if true.
+-- If the 'CrsID' or 'InsID' fields are updated, it ensures the new values exist in the 'CoursesInstructors' table.
+-- If the new values do not exist, it reverts the update and raises an error.
 
 ALTER TRIGGER trg_QuestionAfterUpdate
 ON question
@@ -60,6 +69,11 @@ END;
 
 --* insert
 
+-- This trigger trg_AfterInsertCorrectAnswer is executed after an insert operation on the 'question' table.
+-- It checks if the inserted 'CorrectAnswer' exists in the 'QuestionOptions' table for the given question.
+-- If the 'CorrectAnswer' does not exist, it sets the 'CorrectAnswer' to NULL in the 'question' table.
+-- Otherwise, it prints a message indicating the correct answer is set to NULL.
+
 CREATE TRIGGER trg_AfterInsertCorrectAnswer
 ON question
 After INSERT
@@ -79,6 +93,11 @@ AS
 END;
 
 --* update
+
+-- This trigger trg_AfterUpdateCorrectAnswer is executed after an update on the 'question' table.
+-- It ensures that the updated 'CorrectAnswer' exists in the 'QuestionOptions' table.
+-- If the 'CorrectAnswer' does not exist, it reverts the 'CorrectAnswer' to its previous value.
+-- If the 'CorrectAnswer' exists, it prints a message indicating the input is not valid.
 
 create TRIGGER trg_AfterUpdateCorrectAnswer
 ON question
@@ -108,6 +127,12 @@ END;
 
 
 --* insert
+
+
+-- This trigger trg_ExamQuestionInsteadOfInsert is executed instead of an insert on the 'ExamQuestions' table.
+-- It ensures that the question has options and the exam has not exceeded its question count.
+-- If conditions are met, it inserts the question into the exam and updates the total mark.
+-- Otherwise, it raises an appropriate error.
 
 ALTER TRIGGER trg_ExamQuestionInsteadOfInsert
 ON ExamQuestions
@@ -151,6 +176,11 @@ END;
 
 --* update
 
+-- This trigger trg_ExamQuestionAfterUpdate is executed after an update on the 'ExamQuestions' table.
+-- It prevents changing the exam ID and ensures the new question belongs to the same course.
+-- If the exam has already been launched, it raises an error.
+-- It also updates the total mark of the exam if the question mark changes.
+
 ALTER TRIGGER trg_ExamQuestionAfterUpdate
 ON ExamQuestions
     After UPDATE
@@ -193,6 +223,10 @@ END;
 --! StudentsExamsAnswers
 
 --* insert
+
+-- This trigger trg_StudentsExamsAnswersAfterInsert is executed after an insert on the 'StudentsExamsAnswers' table.
+-- It validates the student's answer and updates the answer grade and student's total grade.
+-- If the inputs are invalid, it rolls back the transaction and raises an error.
 
 CREATE TRIGGER trg_StudentsExamsAnswersAfterInsert
 ON StudentsExamsAnswers
@@ -241,6 +275,10 @@ GO
 --!   student exam
 
 --* insert
+
+-- This trigger trg_StudentExamInsertPrevent is executed after an insert on the 'StudentExams' table.
+-- It prevents any insert operations on the table by rolling back the transaction and raising an error.
+
 create TRIGGER trg_StudentExamInsertPrevent
 ON StudentExams
 After INSERT
@@ -252,7 +290,11 @@ END;
 
 
 
+
 --* update
+
+-- This trigger prevents updates to the StdID and ExamID columns in the StudentExams table.
+-- If an update is attempted on these columns, the transaction is rolled back and an error is raised.
 
 alter TRIGGER trg_StudentExamPreventUpdateStdExam
 ON StudentExams
@@ -266,7 +308,11 @@ BEGIN
     END
 END;
 
+--! update grade
 
+
+-- This trigger trg_StudentExamPreventUpdateGrade is executed after an update on the 'StudentExams' table.
+-- It prevents updates to the 'grade' column by rolling back the transaction and raising an error.
 
 create TRIGGER trg_StudentExamPreventUpdateGrade
 ON StudentExams
@@ -282,6 +328,9 @@ END;
 
 --* delete
 
+-- This trigger trg_StudentExamPreventDelete is executed instead of a delete on the 'StudentExams' table.
+-- It prevents any delete operations on the table by rolling back the transaction and raising an error.
+
 create TRIGGER trg_StudentExamPreventDelete
 ON StudentExams
 INSTEAD OF DELETE
@@ -296,6 +345,11 @@ END;
 --! Exam
 
 --* insert
+
+-- This trigger is executed instead of an INSERT operation on the Exam table.
+-- It checks if the combination of CrsID and InsID exists in the CoursesInstructors table.
+-- If it exists, it inserts a new record into the Exam table with the provided values.
+-- If it does not exist, it raises an error indicating invalid values.
 
 CREATE TRIGGER tgr_ExamInsteadOfInsert
 ON Exam
@@ -314,6 +368,9 @@ DECLARE @ID INT , @Name VARCHAR(50) , @CrsID INT , @InsID INT , @Duration DECIMA
 
 END;
 
+
+-- This trigger prevents updates to the Exam table after the exam has started.
+-- It also restricts updates to only the Name, QuestionCount, and Duration columns.
 
 alter TRIGGER tgr_ExamPreventUpdate
 ON Exam
@@ -335,6 +392,10 @@ BEGIN
 
 END;
 
+
+-- This trigger prevents updating the StartTime column in the Exam table.
+-- If an attempt is made to update StartTime, the transaction is rolled back.
+-- An error is raised if the original StartTime value is NULL.
 
 ALTER TRIGGER tgr_ExamPreventUpdateStartTime
 ON Exam
