@@ -329,7 +329,7 @@ END;
 -- This trigger trg_StudentExamPreventDelete is executed instead of a delete on the 'StudentExams' table.
 -- It prevents any delete operations on the table by rolling back the transaction and raising an error.
 
-create TRIGGER trg_StudentExamPreventDelete
+CREATE TRIGGER trg_StudentExamPreventDelete
 ON StudentExams
 INSTEAD OF DELETE
 AS
@@ -349,7 +349,7 @@ END;
 -- If it exists, it inserts a new record into the Exam table with the provided values.
 -- If it does not exist, it raises an error indicating invalid values.
 
-CREATE TRIGGER tgr_ExamInsteadOfInsert
+CREATE TRIGGER trg_ExamInsteadOfInsert
 ON Exam
 INSTEAD OF INSERT
 AS
@@ -370,7 +370,7 @@ END;
 -- This trigger prevents updates to the Exam table after the exam has started.
 -- It also restricts updates to only the Name, QuestionCount, and Duration columns.
 
-alter TRIGGER tgr_ExamPreventUpdate
+CREATE TRIGGER trg_ExamPreventUpdate
 ON Exam
 After UPDATE
 AS
@@ -395,7 +395,7 @@ END;
 -- If an attempt is made to update StartTime, the transaction is rolled back.
 -- An error is raised if the original StartTime value is NULL.
 
-ALTER TRIGGER tgr_ExamPreventUpdateStartTime
+CREATE TRIGGER trg_ExamPreventUpdateStartTime
 ON Exam
 After UPDATE
 AS
@@ -408,5 +408,30 @@ BEGIN
         IF @StartTime IS NULL
             RAISERROR('you can only update Name , QuestionCount and Duration',13,1)
     END
+
+END;
+
+
+
+
+
+--! student
+
+--*
+
+
+
+--* update
+
+CREATE TRIGGER trg_StudentAfterUpdate
+ON Student
+After UPDATE
+AS
+BEGIN
+    IF UPDATE(IntakeID) OR UPDATE(TrackID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('you can not update track or intake' , 13,1)
+        END
 
 END;
