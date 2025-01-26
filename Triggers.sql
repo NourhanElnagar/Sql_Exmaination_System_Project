@@ -241,7 +241,7 @@ GO
 --!   student exam
 
 --* insert
-CREATE TRIGGER trg_StudentExamInsertPrevent
+create TRIGGER trg_StudentExamInsertPrevent
 ON StudentExams
 After INSERT
 AS
@@ -249,6 +249,7 @@ BEGIN
     ROLLBACK
     RAISERROR('No operations allowed on this Table',13,1)
 END;
+
 
 
 --* update
@@ -310,5 +311,26 @@ DECLARE @ID INT , @Name VARCHAR(50) , @CrsID INT , @InsID INT , @Duration DECIMA
         END
     ELSE
         RAISERROR('insert valid values',13,1)
+
+END;
+
+
+CREATE TRIGGER tgr_ExamPreventUpdate
+ON Exam
+After UPDATE
+AS
+BEGIN
+    DECLARE  @StartTime datetime
+    SELECT @StartTime = StartTime  FROM inserted
+    IF(@StartTime IS NOT NULL)
+    BEGIN
+        ROLLBACK
+        RAISERROR('you can not update exam data After launching exam',13,1)
+    END
+    ELSE IF (UPDATE(TotalMark) OR UPDATE(CrsID) OR UPDATE(InsID) )
+    BEGIN
+        ROLLBACK
+        RAISERROR('you can only update Name , QuestionCount and Duration',13,1)
+    END
 
 END;
