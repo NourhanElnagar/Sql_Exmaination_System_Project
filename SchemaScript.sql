@@ -218,9 +218,9 @@ CREATE TABLE Track
 )
 GO
 
-ALTER TABLE Track
-  ADD CONSTRAINT UQ_TrackName UNIQUE (Name)
-GO
+-- ALTER TABLE Track
+--   ADD CONSTRAINT UQ_TrackName UNIQUE (Name)
+-- GO
 
 CREATE TABLE TrackCourses
 (
