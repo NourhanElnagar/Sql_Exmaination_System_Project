@@ -48,7 +48,7 @@ CREATE TABLE Exam
 (
   ID            int           NOT NULL IDENTITY(1,1),
   Name          varchar(50)   NOT NULL,
-  StartTime     datetime      NOT NULL,
+  StartTime     datetime              ,
   Duration      DECIMAL(3,2)  NOT NULL,
   EndTime       AS            DATEADD(hour , Duration , StartTime),
   QuestionCount tinyint       NOT NULL,
