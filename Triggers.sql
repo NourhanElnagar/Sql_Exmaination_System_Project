@@ -435,12 +435,12 @@ END;
 -- Prevents insertion of courses into tracks with registered students
 -- Rolls back transaction and raises an error if condition is met
 
-Create TRIGGER trg_TrackCoursesPreventInsert
+ALTER TRIGGER trg_TrackCoursesPreventInsert
 ON TrackCourses
 AFTER INSERT
 AS
 BEGIN
-    DECLARE @TrackID INT , @CrsID INT
+    DECLARE @TrackID INT
     SELECT @TrackID = TrackID FROM inserted
     IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
         BEGIN
@@ -463,13 +463,36 @@ ON TrackCourses
 AFTER UPDATE
 AS
 BEGIN
-    DECLARE @OTrackID INT , @NTrackID  INT, @CrsID INT
+    DECLARE @OTrackID INT , @NTrackID  INT
     SELECT @OTrackID = TrackID FROM deleted
     SELECT @NTrackID = TrackID FROM inserted
     IF exists(select 1 FROM Student WHERE TrackID = @OTrackID) OR exists(select 1 FROM Student WHERE TrackID = @NTrackID)
         BEGIN
             ROLLBACK
             RAISERROR('can not update course to track that have students registered',13,1)
+        END
+
+END;
+
+
+--* delete
+
+
+-- Prevents deletion of a track course if students are registered
+-- Rolls back the transaction and raises an error if condition is met
+
+
+create TRIGGER trg_TrackCoursesPreventDelete
+ON TrackCourses
+AFTER DELETE
+AS
+BEGIN
+     DECLARE @TrackID INT
+     SELECT @TrackID = TrackID FROM inserted
+    IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('can not delete course FROM track that have students registered',13,1)
         END
 
 END;
