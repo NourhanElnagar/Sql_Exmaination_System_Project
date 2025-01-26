@@ -315,13 +315,13 @@ DECLARE @ID INT , @Name VARCHAR(50) , @CrsID INT , @InsID INT , @Duration DECIMA
 END;
 
 
-CREATE TRIGGER tgr_ExamPreventUpdate
+alter TRIGGER tgr_ExamPreventUpdate
 ON Exam
 After UPDATE
 AS
 BEGIN
     DECLARE  @StartTime datetime
-    SELECT @StartTime = StartTime  FROM inserted
+    SELECT @StartTime = StartTime  FROM deleted
     IF(@StartTime IS NOT NULL)
     BEGIN
         ROLLBACK
@@ -331,6 +331,23 @@ BEGIN
     BEGIN
         ROLLBACK
         RAISERROR('you can only update Name , QuestionCount and Duration',13,1)
+    END
+
+END;
+
+
+ALTER TRIGGER tgr_ExamPreventUpdateStartTime
+ON Exam
+After UPDATE
+AS
+BEGIN
+    DECLARE  @StartTime datetime
+    SELECT @StartTime = StartTime  FROM deleted
+    if UPDATE(StartTime)
+    BEGIN
+        ROLLBACK
+        IF @StartTime IS NULL
+            RAISERROR('you can only update Name , QuestionCount and Duration',13,1)
     END
 
 END;
