@@ -126,4 +126,7 @@ END;
 
 
 
+
+-- TRIGGER trg_ExamPreventUpdateStartTime
+
 CREATE PROC GenerateExam
