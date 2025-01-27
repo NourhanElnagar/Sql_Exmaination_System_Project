@@ -35,10 +35,7 @@ BEGIN
     SELECT @ID = ID, @InsID = InsID, @CrsID = CrsID FROM inserted
     IF EXISTS (SELECT 1 FROM ExamQuestions AS ea WHERE ea.QuestionID = @ID)
     BEGIN
-        SELECT @CrsID = CrsID, @InsID = InsID FROM deleted;
-        UPDATE question
-        SET CrsID = @CrsID, InsID = @InsID
-        WHERE ID = @ID
+        ROLLBACK
         RAISERROR('not allowed to update question that already in students exams', 14, 1)
     END
     ELSE IF UPDATE(CrsID) OR UPDATE(InsID)
@@ -499,3 +496,25 @@ BEGIN
         END
 
 END;
+
+
+
+-- !   Track
+
+-- * update
+
+
+CREATE TRIGGER trg_TrackPreventUpdateIntack
+ON Track
+AFTER UPDATE
+AS
+BEGIN
+    DECLARE @IntakeID int
+    SELECT @IntakeID = IntakeID FROM deleted
+    IF UPDATE(IntakeID) AND  EXISTS(SELECT 1 FROM Student WHERE IntakeID = @IntakeID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('you can not update track for launched intake',13,1)
+        END
+
+END ;
