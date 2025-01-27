@@ -49,9 +49,9 @@ CREATE TABLE Exam
   ID            int           NOT NULL IDENTITY(1,1),
   Name          varchar(50)   NOT NULL,
   StartTime     datetime              ,
-  Duration      DECIMAL(3,2)  NOT NULL,
+  Duration      DECIMAL(3,2)  NOT NULL CHECK(Duration > 0 ),
   EndTime       AS            DATEADD(hour , Duration , StartTime),
-  QuestionCount tinyint       NOT NULL,
+  QuestionCount tinyint       NOT NULL CHECK(QuestionCount > 0 ),
   TotalMark     tinyint       DEFAULT  0 ,
   CrsID         int           NOT NULL,
   InsID         int           NOT NULL,
@@ -81,7 +81,7 @@ CREATE TABLE Instructor
   City     nvarchar(50) NOT NULL,
   Phone    varchar(13)  NOT NULL,
   HireDate date         NOT NULL DEFAULT GETDATE(),
-  Salary   decimal(8,2) NOT NULL,
+  Salary   decimal(8,2) NOT NULL CHECK(Salary > 0),
   SuperID  int                  ,
   CONSTRAINT PK_Instructor PRIMARY KEY (ID)
 )
@@ -100,7 +100,7 @@ CREATE TABLE Intake
   ID        int         NOT NULL IDENTITY(1,1),
   Name      varchar(30) NOT NULL,
   StartDate date        NOT NULL,
-  EndDate   date        NOT NULL,
+  EndDate   date        NOT NULL CHECK(EndDate > StartDate),
   CONSTRAINT PK_Intake PRIMARY KEY (ID)
 )
 GO
@@ -113,7 +113,7 @@ CREATE TABLE Question
 (
   ID            int          NOT NULL IDENTITY(1,1),
   Body          varchar(150) NOT NULL,
-  Mark          tinyint      NOT NULL,
+  Mark          tinyint      NOT NULL CHECK(Mark > 0),
   CorrectAnswer tinyint              ,
   TypeID        int          NOT NULL,
   CrsID         int          NOT NULL,
