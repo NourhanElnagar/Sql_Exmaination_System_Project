@@ -18,7 +18,7 @@ BEGIN
     IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID)
         BEGIN
             ROLLBACK
-            RAISERROR('you can not insert option for question that is already in exams',13,1)
+            RAISERROR('you can not insert option for question that is already in exams',16,1)
         END
 
 END;
@@ -40,7 +40,7 @@ BEGIN
     IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID) OR exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @NewQuesID)
         BEGIN
             ROLLBACK
-            RAISERROR('you can not update options for question that is already in exams',13,1)
+            RAISERROR('you can not update options for question that is already in exams',16,1)
         END
 
 END;
@@ -60,7 +60,7 @@ BEGIN
     IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID)
         BEGIN
             ROLLBACK
-            RAISERROR('you can not delete options for question that is already in exams',13,1)
+            RAISERROR('you can not delete options for question that is already in exams',16,1)
         END
 
 END;
@@ -112,7 +112,7 @@ BEGIN
             WHERE ID = @ID
         END
         ELSE
-            RAISERROR('operation failed', 13, 1)
+            RAISERROR('operation failed', 16, 1)
     END
 END;
 
@@ -174,7 +174,7 @@ ON ExamQuestions
 INSTEAD OF INSERT
 AS
 BEGIN
-    RAISERROR ('you can not do any operation in this table',13,1)
+    RAISERROR ('you can not do any operation in this table',16,1)
 
 
 END;
@@ -279,13 +279,13 @@ BEGIN
         OR NOT EXISTS (SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID AND OptionNum = @StdAnswer)
     BEGIN
         ROLLBACK
-        RAISERROR('Wrong inputs', 13, 1)
+        RAISERROR('Wrong inputs', 16, 1)
         RETURN;
     END
     ELSE IF (GETDATE() > @ExamEndTime)
         BEGIN
             ROLLBACK
-        RAISERROR('Exam TimeOut', 13, 1)
+        RAISERROR('Exam TimeOut', 16, 1)
         END
     ELSE
     BEGIN
@@ -316,8 +316,60 @@ END;
 
 
 --* update
+-- This trigger prevents updates to the StudentsExamsAnswers table after the exam end time and ensures only valid updates to student answers.
+create TRIGGER trg_StudentsExamsAnswersPreventUpdate
+ON StudentsExamsAnswers
+AFTER UPDATE
+AS
+BEGIN
+    DECLARE @StdID INT, @QuesID INT, @ExamID INT, @StdAnswer TINYINT, @NStdAnswer TINYINT, @OAnswerGrade TINYINT, @NAnswerGrade TINYINT, @ExamEndTime DATETIME
+    SELECT @StdID = StdID, @QuesID = QuestionID, @ExamID = ExamID, @OAnswerGrade = AnswerGrade FROM deleted;
+    SELECT @NStdAnswer = StdAnswer FROM inserted;
+    SELECT @ExamEndTime = EndTime FROM Exam WHERE ID = @ExamID;
 
+    IF (GETDATE() > @ExamEndTime)
+    BEGIN
+        ROLLBACK;
+        RAISERROR('Exam TimeOut', 16, 1);
+    END
+    ELSE IF NOT UPDATE(StdAnswer)
+    BEGIN
+        ROLLBACK;
+        RAISERROR('you can update your answer only', 16, 1);
+    END
+    ELSE IF NOT EXISTS (SELECT 1 FROM StudentExams AS se JOIN ExamQuestions AS eq ON eq.ExamID = se.ExamID AND eq.ExamID = @ExamID AND se.StdID = @StdID AND eq.QuestionID = @QuesID)
+        OR NOT EXISTS (SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID AND OptionNum = @NStdAnswer)
+    BEGIN
+        ROLLBACK;
+        RAISERROR('Wrong inputs', 16, 1);
+        RETURN;
+    END
+    ELSE
+    BEGIN
+        SELECT @NAnswerGrade = IIF(@NStdAnswer = CorrectAnswer, Mark, 0) FROM question AS q WHERE q.ID = @QuesID;
+        BEGIN TRY
+            BEGIN TRANSACTION;
 
+            UPDATE StudentsExamsAnswers
+            SET AnswerGrade = @NAnswerGrade
+            WHERE StdID = @StdID AND QuestionID = @QuesID AND ExamID = @ExamID;
+
+            DISABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams;
+
+            UPDATE StudentExams
+            SET Grade += (@NAnswerGrade - @OAnswerGrade)
+            WHERE StdID = @StdID AND ExamID = @ExamID;
+
+            ENABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams;
+
+            COMMIT TRANSACTION;
+        END TRY
+        BEGIN CATCH
+            PRINT 'Operation Failed';
+            ROLLBACK TRANSACTION;
+        END CATCH
+    END
+END;
 
 
 
@@ -331,7 +383,7 @@ ON StudentsExamsAnswers
 INSTEAD OF DELETE
 AS
 BEGIN
-RAISERROR('You can not delete from this table',13,1)
+RAISERROR('You can not delete from this table',16,1)
 
 END ;
 
@@ -346,7 +398,7 @@ AFTER INSERT
 AS
 BEGIN
     ROLLBACK
-    RAISERROR('No operations allowed on this Table', 13, 1)
+    RAISERROR('No operations allowed on this Table', 16, 1)
 END;
 
 --* update
@@ -360,7 +412,7 @@ BEGIN
     IF UPDATE(StdID) OR UPDATE(ExamID)
     BEGIN
         ROLLBACK
-        RAISERROR('you cannot update these data', 13, 1)
+        RAISERROR('you cannot update these data', 16, 1)
     END
 END;
 
@@ -373,7 +425,7 @@ BEGIN
     IF UPDATE(grade)
     BEGIN
         ROLLBACK
-        RAISERROR('you cannot update these data', 13, 1)
+        RAISERROR('you cannot update these data', 16, 1)
     END
 END;
 
@@ -385,7 +437,7 @@ ON StudentExams
 INSTEAD OF DELETE
 AS
 BEGIN
-    RAISERROR('No operations allowed on this Table', 13, 1)
+    RAISERROR('No operations allowed on this Table', 16, 1)
 END;
 
 --! Exam
@@ -406,7 +458,7 @@ BEGIN
         VALUES (@Name, NULL, @Duration, @QuestionCount, 0, @CrsID, @InsID);
     END
     ELSE
-        RAISERROR('insert valid values', 13, 1)
+        RAISERROR('insert valid values', 16, 1)
 END;
 
 -- Prevents updates to Exam table after exam has started. Restricts updates to Name, QuestionCount, and Duration columns.
@@ -420,12 +472,12 @@ BEGIN
     IF (@StartTime IS NOT NULL)
     BEGIN
         ROLLBACK
-        RAISERROR('you cannot update exam data after launching exam', 13, 1)
+        RAISERROR('you cannot update exam data after launching exam', 16, 1)
     END
     ELSE IF (UPDATE(TotalMark) OR UPDATE(CrsID) OR UPDATE(InsID))
     BEGIN
         ROLLBACK
-        RAISERROR('you can only update Name, QuestionCount, and Duration', 13, 1)
+        RAISERROR('you can only update Name, QuestionCount, and Duration', 16, 1)
     END
 END;
 
@@ -441,7 +493,7 @@ BEGIN
     BEGIN
         ROLLBACK
         IF @StartTime IS NULL
-            RAISERROR('you can only update Name, QuestionCount, and Duration', 13, 1)
+            RAISERROR('you can only update Name, QuestionCount, and Duration', 16, 1)
     END
 END;
 
@@ -460,7 +512,7 @@ ON StudentCourses
 INSTEAD OF INSERT
 AS
 BEGIN
-    RAISERROR('No operations allowed on this Table', 13, 1)
+    RAISERROR('No operations allowed on this Table', 16, 1)
 END;
 
 
@@ -472,7 +524,7 @@ ON StudentCourses
 INSTEAD OF UPDATE
 AS
 BEGIN
-    RAISERROR('No operations allowed on this Table', 13, 1)
+    RAISERROR('No operations allowed on this Table', 16, 1)
 END;
 
 
@@ -485,7 +537,7 @@ ON StudentCourses
 INSTEAD OF delete
 AS
 BEGIN
-    RAISERROR('No operations allowed on this Table', 13, 1)
+    RAISERROR('No operations allowed on this Table', 16, 1)
 END;
 
 
@@ -511,7 +563,7 @@ BEGIN
             IF NOT EXISTS(SELECT 1 FROM Track WHERE ID = @TrackID AND IntakeID = @IntakeID) OR (GETDATE() > @IntackStartDate)
             BEGIN
                 ROLLBACK
-                RAISERROR('Insert correct intake and track',13,1)
+                RAISERROR('Insert correct intake and track',16,1)
             END
         ELSE
             BEGIN
@@ -545,7 +597,7 @@ BEGIN
      IF UPDATE(TrackID) OR UPDATE(IntakeID)
     BEGIN
         ROLLBACK
-        RAISERROR('you cannot update track or intake ', 13, 1)
+        RAISERROR('you cannot update track or intake ', 16, 1)
     END
 
 END;
@@ -570,7 +622,7 @@ BEGIN
     IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
         BEGIN
             ROLLBACK
-            RAISERROR('can not add course to track that have students registered',13,1)
+            RAISERROR('can not add course to track that have students registered',16,1)
         END
 
 END;
@@ -594,7 +646,7 @@ BEGIN
     IF exists(select 1 FROM Student WHERE TrackID = @OTrackID) OR exists(select 1 FROM Student WHERE TrackID = @NTrackID)
         BEGIN
             ROLLBACK
-            RAISERROR('can not update course to track that have students registered',13,1)
+            RAISERROR('can not update course to track that have students registered',16,1)
         END
 
 END;
@@ -620,7 +672,7 @@ BEGIN
     IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
         BEGIN
             ROLLBACK
-            RAISERROR('can not delete course FROM track that have students registered',13,1)
+            RAISERROR('can not delete course FROM track that have students registered',16,1)
         END
 
 END;
@@ -642,7 +694,7 @@ BEGIN
     IF UPDATE(IntakeID) AND  EXISTS(SELECT 1 FROM Student WHERE IntakeID = @IntakeID)
         BEGIN
             ROLLBACK
-            RAISERROR('you can not update track for launched intake',13,1)
+            RAISERROR('you can not update track for launched intake',16,1)
         END
 
 END ;
