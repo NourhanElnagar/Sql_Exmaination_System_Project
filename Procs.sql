@@ -136,13 +136,13 @@ END;
 
 
 /*
-    Procedure: GenerateExam
+    Procedure: sp_GenerateExam
     Description: Generates an exam by inserting questions and assigning it to students.
     Parameters:
         @ExamID (int) - The ID of the exam to be generated.
 */
 
-CREATE PROC GenerateExam
+Create PROC sp_GenerateExam
 @ExamID int
 AS
 BEGIN
