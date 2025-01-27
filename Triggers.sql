@@ -25,7 +25,24 @@ BEGIN
 END;
 
 
+--* delete
 
+-- This trigger prevents deletion of question options if the question is already used in exams.
+
+create TRIGGER trg_questionOptionsPreventDelete
+ON QuestionOptions
+after delete
+as
+BEGIN
+    DECLARE @QuesID int
+    SELECT @QuesID = QuestionID FROM deleted
+    IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('you can not delete options for question that is already in exams',13,1)
+        END
+
+END;
 
 
 --! question
