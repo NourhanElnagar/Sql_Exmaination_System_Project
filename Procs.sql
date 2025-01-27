@@ -129,4 +129,93 @@ END;
 
 -- TRIGGER trg_ExamPreventUpdateStartTime
 
+--trg_StudentExamInsertPrevent
+
+--TRIGGER trg_ExamQuestionsPreventInsert
+
+
+
+/*
+    Procedure: GenerateExam
+    Description: Generates an exam by inserting questions and assigning it to students.
+    Parameters:
+        @ExamID (int) - The ID of the exam to be generated.
+*/
+
 CREATE PROC GenerateExam
+@ExamID int
+AS
+BEGIN
+    -- Declare variables for exam start time, course ID, and question count
+    DECLARE @ExamStartTime datetime, @CrsID INT, @QuesCount TINYINT
+
+    -- Retrieve exam details
+    SELECT @ExamStartTime = StartTime, @CrsID = CrsID, @QuesCount = QuestionCount FROM Exam
+    WHERE ID = @ExamID;
+    -- Check if the exam exists
+    IF (@CrsID is NULL)
+        BEGIN
+            PRINT 'Exam is not found'
+            RETURN;
+        END
+    -- Check if the exam has already been generated
+    ELSE IF (@ExamStartTime is NOT NULL)
+         BEGIN
+            PRINT 'You can not generate already Generated Exam'
+            RETURN;
+        END
+    ELSE
+        BEGIN
+            BEGIN TRY
+                BEGIN TRANSACTION ;
+
+                    -- Disable trigger to allow insertion of exam questions
+                    DISABLE TRIGGER trg_ExamQuestionsPreventInsert on ExamQuestions;
+
+                    -- Insert questions into the exam
+                    INSERT INTO ExamQuestions(ExamID, QuestionID)
+                        SELECT TOP(@QuesCount) @ExamID, ID FROM question WHERE CrsID = @CrsID ORDER by NEWID();
+
+                    -- Enable trigger after insertion
+                    ENABLE TRIGGER trg_ExamQuestionsPreventInsert on ExamQuestions;
+
+                    -- Disable trigger to allow update of exam total mark
+                    DISABLE TRIGGER trg_ExamPreventUpdate on Exam;
+
+                    -- Update the total mark of the exam
+                    UPDATE Exam
+                        SET TotalMark = (SELECT SUM(q.Mark)
+                                         FROM question as q JOIN ExamQuestions as eq on eq.QuestionID = q.ID
+                                         WHERE eq.ExamID = @ExamID)
+                        WHERE ID = @ExamID;
+
+                    -- Enable trigger after update
+                    ENABLE TRIGGER trg_ExamPreventUpdate on Exam;
+
+                    -- Disable trigger to allow insertion of student exams
+                    DISABLE TRIGGER trg_StudentExamInsertPrevent on StudentExams;
+
+                    -- Insert student exams
+                    INSERT INTO StudentExams(StdID, ExamID)
+                    SELECT s.ID, @ExamID
+                    FROM Student AS s
+                    JOIN StudentCourses AS sc ON sc.StdID = s.ID
+                    JOIN Exam AS e ON e.CrsID = sc.CrsID
+                    JOIN Intake AS i ON s.IntakeID = i.ID
+                    WHERE e.ID = @ExamID
+                    AND e.StartTime BETWEEN i.StartDate AND i.EndDate;
+
+                    -- Enable trigger after insertion
+                    ENABLE TRIGGER trg_StudentExamInsertPrevent on StudentExams;
+
+                COMMIT TRANSACTION
+            END TRY
+            BEGIN CATCH
+                -- Rollback transaction in case of error
+                ROLLBACK TRANSACTION
+                PRINT 'operation failed'
+            END CATCH
+
+        END
+
+END;
