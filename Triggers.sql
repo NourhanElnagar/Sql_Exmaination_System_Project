@@ -438,6 +438,18 @@ BEGIN
 END;
 
 
+--* delete
+
+-- This trigger prevents any delete operations on the StudentCourses table by raising an error.
+
+CREATE TRIGGER trg_StudentCoursesPreventDelete
+ON StudentCourses
+INSTEAD OF delete
+AS
+BEGIN
+    RAISERROR('No operations allowed on this Table', 13, 1)
+END;
+
 
 --! Student
 
