@@ -2,6 +2,32 @@ use ExaminationSystem
 
 
 
+-- ! questionOptions
+
+--  * update
+
+-- This trigger prevents updating options for questions that are already in exams.
+
+ALTER TRIGGER trg_questionOptionsPreventUpdate
+ON QuestionOptions
+after update
+as
+BEGIN
+    DECLARE @QuesID int , @NewQuesID int
+    SELECT @QuesID = QuestionID FROM deleted
+    SELECT @NewQuesID = QuestionID FROM inserted
+    IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID) OR exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @NewQuesID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('you can not update options for question that is already in exams',13,1)
+        END
+
+END;
+
+
+
+
+
 --! question
 
 --* insert
