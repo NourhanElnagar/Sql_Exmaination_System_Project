@@ -248,16 +248,17 @@ END;
 
 --* insert
 
--- This trigger updates the student's exam grade after an answer is inserted, ensuring valid inputs and exam timing.
+
+-- This trigger updates the student's exam grade after inserting an answer, ensuring valid inputs and exam time constraints.
 
 ALTER TRIGGER trg_StudentsExamsAnswersAfterInsert
 ON StudentsExamsAnswers
 AFTER INSERT
 AS
 BEGIN
-    DECLARE @stdID INT, @QuesID INT, @ExamID INT, @StdAnswer INT, @AnswerGrade TINYINT , @ExamStartTime DATETIME
+    DECLARE @stdID INT, @QuesID INT, @ExamID INT, @StdAnswer INT, @AnswerGrade TINYINT , @ExamEndTime DATETIME
     SELECT @stdID = StdID, @QuesID = QuestionID, @ExamID = ExamID, @StdAnswer = StdAnswer FROM inserted
-    SELECT @ExamStartTime = StartTime FROM Exam WHERE ID = @ExamID
+    SELECT @ExamEndTime = EndTime FROM Exam WHERE ID = @ExamID
     IF NOT EXISTS (SELECT 1 FROM StudentExams AS se JOIN ExamQuestions AS eq ON eq.ExamID = se.ExamID AND eq.ExamID = @ExamID AND se.StdID = @stdID AND eq.QuestionID = @QuesID)
         OR NOT EXISTS (SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID AND OptionNum = @StdAnswer)
     BEGIN
@@ -265,7 +266,7 @@ BEGIN
         RAISERROR('Wrong inputs', 13, 1)
         RETURN;
     END
-    ELSE IF (GETDATE() > @ExamStartTime)
+    ELSE IF (GETDATE() > @ExamEndTime)
         BEGIN
             ROLLBACK
         RAISERROR('Exam TimeOut', 13, 1)
