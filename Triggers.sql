@@ -4,6 +4,27 @@ use ExaminationSystem
 
 -- ! questionOptions
 
+--* insert
+
+-- This trigger prevents inserting options for questions that are already in exams.
+
+create TRIGGER trg_questionOptionsPreventInsert
+ON QuestionOptions
+after insert
+as
+BEGIN
+    DECLARE @QuesID int
+    SELECT @QuesID = QuestionID FROM inserted
+    IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID)
+        BEGIN
+            ROLLBACK
+            RAISERROR('you can not insert option for question that is already in exams',13,1)
+        END
+
+END;
+
+
+
 --  * update
 
 -- This trigger prevents updating options for questions that are already in exams.
