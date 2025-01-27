@@ -248,14 +248,16 @@ END;
 
 --* insert
 
--- Validates student's answer and updates answer grade and student's total grade.
-CREATE TRIGGER trg_StudentsExamsAnswersAfterInsert
+-- This trigger updates the student's exam grade after an answer is inserted, ensuring valid inputs and exam timing.
+
+ALTER TRIGGER trg_StudentsExamsAnswersAfterInsert
 ON StudentsExamsAnswers
 AFTER INSERT
 AS
 BEGIN
-    DECLARE @stdID INT, @QuesID INT, @ExamID INT, @StdAnswer INT, @AnswerGrade TINYINT
+    DECLARE @stdID INT, @QuesID INT, @ExamID INT, @StdAnswer INT, @AnswerGrade TINYINT , @ExamStartTime DATETIME
     SELECT @stdID = StdID, @QuesID = QuestionID, @ExamID = ExamID, @StdAnswer = StdAnswer FROM inserted
+    SELECT @ExamStartTime = StartTime FROM Exam WHERE ID = @ExamID
     IF NOT EXISTS (SELECT 1 FROM StudentExams AS se JOIN ExamQuestions AS eq ON eq.ExamID = se.ExamID AND eq.ExamID = @ExamID AND se.StdID = @stdID AND eq.QuestionID = @QuesID)
         OR NOT EXISTS (SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID AND OptionNum = @StdAnswer)
     BEGIN
@@ -263,17 +265,29 @@ BEGIN
         RAISERROR('Wrong inputs', 13, 1)
         RETURN;
     END
+    ELSE IF (GETDATE() > @ExamStartTime)
+        BEGIN
+            ROLLBACK
+        RAISERROR('Exam TimeOut', 13, 1)
+        END
     ELSE
     BEGIN
         SELECT @AnswerGrade = IIF(@StdAnswer = CorrectAnswer, Mark, 0) FROM question AS q WHERE q.ID = @QuesID
         BEGIN TRY
             BEGIN TRANSACTION
+
             UPDATE StudentsExamsAnswers
             SET AnswerGrade = @AnswerGrade
             WHERE StdID = @stdID AND QuestionID = @QuesID AND ExamID = @ExamID;
+
+           disable TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams ;
+
             UPDATE StudentExams
             SET Grade += @AnswerGrade
-            WHERE StdID = @stdID AND ExamID = @ExamID
+            WHERE StdID = @stdID AND ExamID = @ExamID ;
+
+            ENABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams ;
+
             COMMIT TRANSACTION
         END TRY
         BEGIN CATCH

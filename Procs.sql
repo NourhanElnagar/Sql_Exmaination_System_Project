@@ -125,36 +125,5 @@ BEGIN
 END;
 
 
--- drop PROC sp_UpdateQuestion
--- @ID int ,
--- @Body VARCHAR(150) = NULL,
--- @Mark TINYINT  = NULL ,
--- @CorrectAnswer TINYINT  = NULL ,
--- @TypeID int  = NULL ,
--- @CrsID int  = NULL ,
--- @InsID  int = NULL
--- AS
--- BEGIN
 
---  BEGIN TRY
---         BEGIN TRANSACTION;
---       UPDATE question
---         SET
---          Body = ISNULL(@Body,Body),
---          Mark = ISNULL(@Mark,Mark),
---          CorrectAnswer = ISNULL(@CorrectAnswer,CorrectAnswer),
---          TypeID = ISNULL(@TypeID,TypeID),
---          CrsID = ISNULL(@CrsID,CrsID),
---          InsID = ISNULL(@InsID,InsID)
---          WHERE ID = @ID
-
---         COMMIT TRANSACTION;
---     END TRY
---     BEGIN CATCH
---         ROLLBACK TRANSACTION;
---         PRINT 'question did not insert';
---     END CATCH
-
--- END;
-
--- GO
+CREATE PROC GenerateExam
