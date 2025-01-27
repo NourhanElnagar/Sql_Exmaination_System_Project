@@ -29,7 +29,7 @@ END;
 
 -- This trigger prevents updating options for questions that are already in exams.
 
-ALTER TRIGGER trg_questionOptionsPreventUpdate
+CREATE TRIGGER trg_questionOptionsPreventUpdate
 ON QuestionOptions
 after update
 as
@@ -90,7 +90,7 @@ END;
 --* update
 
 -- Prevents update if question is in any student's exam. Ensures new CrsID and InsID exist in CoursesInstructors.
-ALTER TRIGGER trg_QuestionAfterUpdate
+CREATE TRIGGER trg_QuestionAfterUpdate
 ON question
 AFTER UPDATE
 AS
@@ -183,7 +183,7 @@ END;
 --* update
 
 -- Prevents changing exam ID and ensures new question belongs to the same course.
-ALTER TRIGGER trg_ExamQuestionAfterUpdate
+CREATE TRIGGER trg_ExamQuestionAfterUpdate
 ON ExamQuestions
 AFTER UPDATE
 AS
@@ -226,7 +226,7 @@ END;
 
 -- This trigger updates the student's exam grade after inserting an answer, ensuring valid inputs and exam time constraints.
 
-ALTER TRIGGER trg_StudentsExamsAnswersAfterInsert
+CREATE TRIGGER trg_StudentsExamsAnswersAfterInsert
 ON StudentsExamsAnswers
 AFTER INSERT
 AS
@@ -363,7 +363,7 @@ END;
 --* update
 
 -- Prevents updates to StdID and ExamID columns in StudentExams table.
-ALTER TRIGGER trg_StudentExamPreventUpdateStdExam
+CREATE TRIGGER trg_StudentExamPreventUpdateStdExam
 ON StudentExams
 AFTER UPDATE
 AS
@@ -510,7 +510,7 @@ END;
 -- Ensures valid TrackID and IntakeID before insertion.
 -- Inserts student courses if valid, else raises error.
 
-alter TRIGGER trg_StudentAfterInsert
+CREATE TRIGGER trg_StudentAfterInsert
 ON Student
 AFTER INSERT
 AS
@@ -544,7 +544,7 @@ END;
 -- This trigger prevents updates to TrackID or IntakeID in the Student table.
 -- It raises an error and rolls back the transaction if such updates are attempted.
 
-ALTER TRIGGER trg_StudentAfterUpdate
+CREATE TRIGGER trg_StudentAfterUpdate
 ON Student
 AFTER UPDATE
 AS
@@ -571,7 +571,7 @@ END;
 -- Prevents insertion of courses into tracks with registered students
 -- Rolls back transaction and raises an error if condition is met
 
-ALTER TRIGGER trg_TrackCoursesPreventInsert
+CREATE TRIGGER trg_TrackCoursesPreventInsert
 ON TrackCourses
 AFTER INSERT
 AS
@@ -594,7 +594,7 @@ END;
 -- Rolls back the transaction and raises an error if the condition is met
 
 
-ALTER TRIGGER trg_TrackCoursesPreventUpdate
+CREATE TRIGGER trg_TrackCoursesPreventUpdate
 ON TrackCourses
 AFTER UPDATE
 AS
@@ -621,7 +621,7 @@ END;
 
 
 
-ALTER TRIGGER trg_TrackCoursesPreventDelete
+CREATE TRIGGER trg_TrackCoursesPreventDelete
 ON TrackCourses
 AFTER DELETE
 AS
@@ -642,6 +642,7 @@ END;
 
 -- * update
 
+-- This trigger prevents updating the IntakeID in the Track table if the intake is already launched and exists in the Student table.
 
 CREATE TRIGGER trg_TrackPreventUpdateIntack
 ON Track
