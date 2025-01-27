@@ -167,43 +167,59 @@ END;
 
 --* insert
 
--- Ensures question has options and exam has not exceeded question count before insertion.
-ALTER TRIGGER trg_ExamQuestionInsteadOfInsert
+-- This trigger prevents any insert operations on the ExamQuestions table by raising an error.
+
+create TRIGGER trg_ExamQuestionsPreventInsert
 ON ExamQuestions
 INSTEAD OF INSERT
 AS
 BEGIN
-    DECLARE @QuesID INT, @ExamID INT, @QuesCount INT = NULL, @quesCrs INT, @QesMark INT, @HasOption BINARY
-    SELECT @QuesID = i.QuestionID, @ExamID = i.ExamID FROM inserted AS i
-    SELECT @quesCrs = CrsID, @QesMark = Mark FROM question WHERE ID = @QuesID
-    SELECT @QuesCount = e.QuestionCount FROM exam AS e WHERE e.CrsID = @quesCrs AND ID = @ExamID
-    SET @HasOption = IIF(EXISTS(SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID), 1, 0)
-    IF (@QuesCount IS NOT NULL)
-    BEGIN
-        IF (SELECT COUNT(*) FROM ExamQuestions WHERE ExamID = @ExamID) < @QuesCount AND @HasOption = 1
-        BEGIN
-            BEGIN TRY
-                BEGIN TRANSACTION
-                INSERT INTO ExamQuestions(ExamID, QuestionID)
-                VALUES (@ExamID, @QuesID)
-                UPDATE Exam
-                SET TotalMark += @QesMark
-                WHERE ID = @ExamID
-                COMMIT TRANSACTION
-            END TRY
-            BEGIN CATCH
-                ROLLBACK TRANSACTION
-                PRINT 'operation failed'
-            END CATCH
-        END
-        ELSE IF @HasOption = 0
-            RAISERROR('Question does not have options', 12, 1)
-        ELSE
-            RAISERROR('exam questions is full', 12, 1)
-    END
-    ELSE
-        RAISERROR('operation failed', 12, 1)
+    RAISERROR ('you can not do any operation in this table',13,1)
+
+
 END;
+
+
+
+-- Ensures question has options and exam has not exceeded question count before insertion.
+-- drop TRIGGER trg_ExamQuestionInsteadOfInsert
+-- ON ExamQuestions
+-- INSTEAD OF INSERT
+-- AS
+-- BEGIN
+--     DECLARE @QuesID INT, @ExamID INT, @QuesCount INT = NULL, @quesCrs INT, @QesMark INT, @HasOption BINARY
+--     SELECT @QuesID = i.QuestionID, @ExamID = i.ExamID FROM inserted AS i
+--     SELECT @quesCrs = CrsID, @QesMark = Mark FROM question WHERE ID = @QuesID
+--     SELECT @QuesCount = e.QuestionCount FROM exam AS e WHERE e.CrsID = @quesCrs AND ID = @ExamID
+--     SET @HasOption = IIF(EXISTS(SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID), 1, 0)
+--     IF (@QuesCount IS NOT NULL)
+--     BEGIN
+--         IF (SELECT COUNT(*) FROM ExamQuestions WHERE ExamID = @ExamID) < @QuesCount AND @HasOption = 1
+--         BEGIN
+--             BEGIN TRY
+--                 BEGIN TRANSACTION
+--                 INSERT INTO ExamQuestions(ExamID, QuestionID)
+--                 VALUES (@ExamID, @QuesID)
+--                 UPDATE Exam
+--                 SET TotalMark += @QesMark
+--                 WHERE ID = @ExamID
+--                 COMMIT TRANSACTION
+--             END TRY
+--             BEGIN CATCH
+--                 ROLLBACK TRANSACTION
+--                 PRINT 'operation failed'
+--             END CATCH
+--         END
+--         ELSE IF @HasOption = 0
+--             RAISERROR('Question does not have options', 12, 1)
+--         ELSE
+--             RAISERROR('exam questions is full', 12, 1)
+--     END
+--     ELSE
+--         RAISERROR('operation failed', 12, 1)
+-- END;
+
+
 
 --* update
 
@@ -297,6 +313,27 @@ BEGIN
         END CATCH
     END
 END;
+
+
+--* update
+
+
+
+
+
+
+--* delete
+
+-- This trigger prevents deletion of records from the StudentsExamsAnswers table.
+
+CREATE TRIGGER trg_StudentsExamsAnswersPreventDelete
+ON StudentsExamsAnswers
+INSTEAD OF DELETE
+AS
+BEGIN
+RAISERROR('You can not delete from this table',13,1)
+
+END ;
 
 --! student exam
 
