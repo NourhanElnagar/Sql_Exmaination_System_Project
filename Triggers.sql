@@ -1,5 +1,6 @@
 use ExaminationSystem
 
+GO
 
 
 -- ! questionOptions
@@ -23,6 +24,7 @@ BEGIN
 
 END;
 
+GO
 
 
 --  * update
@@ -45,6 +47,8 @@ BEGIN
 
 END;
 
+GO
+
 
 --* delete
 
@@ -64,6 +68,8 @@ BEGIN
         END
 
 END;
+
+GO
 
 
 --! question
@@ -86,6 +92,9 @@ BEGIN
     ELSE
         RAISERROR('operation failed', 12, 1)
 END;
+
+GO
+
 
 --* update
 
@@ -114,7 +123,11 @@ BEGIN
         ELSE
             RAISERROR('operation failed', 16, 1)
     END
+
 END;
+
+GO
+
 
 --! correct answer
 
@@ -139,6 +152,9 @@ BEGIN
         PRINT 'correct answer set to NULL';
 END;
 
+GO
+
+
 --* update
 
 -- Reverts CorrectAnswer if it does not exist in QuestionOptions.
@@ -161,7 +177,11 @@ BEGIN
         ELSE
             PRINT 'your input does not exist in question options';
     END
+
 END;
+
+GO
+
 
 --! question exam
 
@@ -178,6 +198,8 @@ BEGIN
 
 
 END;
+
+GO
 
 
 --* update
@@ -217,7 +239,11 @@ BEGIN
         SET TotalMark += (@NewQuesMark - @QuesMark)
         WHERE ID = @ExamID;
     END
+
 END;
+
+GO
+
 
 --! StudentsExamsAnswers
 
@@ -271,7 +297,10 @@ BEGIN
             ROLLBACK TRANSACTION
         END CATCH
     END
+
 END;
+
+GO
 
 
 --* update
@@ -328,8 +357,10 @@ BEGIN
             ROLLBACK TRANSACTION;
         END CATCH
     END
+
 END;
 
+GO
 
 
 
@@ -346,6 +377,9 @@ RAISERROR('You can not delete from this table',16,1)
 
 END ;
 
+GO
+
+
 --! student exam
 
 --* insert
@@ -358,7 +392,11 @@ AS
 BEGIN
     ROLLBACK
     RAISERROR('No operations allowed on this Table', 16, 1)
+
 END;
+
+GO
+
 
 --* update
 
@@ -375,6 +413,9 @@ BEGIN
     END
 END;
 
+GO
+
+
 -- Prevents updates to the grade column in StudentExams table.
 CREATE TRIGGER trg_StudentExamPreventUpdateGrade
 ON StudentExams
@@ -386,7 +427,11 @@ BEGIN
         ROLLBACK
         RAISERROR('you cannot update these data', 16, 1)
     END
+
 END;
+
+GO
+
 
 --* delete
 
@@ -398,6 +443,9 @@ AS
 BEGIN
     RAISERROR('No operations allowed on this Table', 16, 1)
 END;
+
+GO
+
 
 --! Exam
 
@@ -419,6 +467,9 @@ BEGIN
     ELSE
         RAISERROR('insert valid values', 16, 1)
 END;
+
+GO
+
 
 -- Prevents updates to Exam table after exam has started. Restricts updates to Name, QuestionCount, and Duration columns.
 CREATE TRIGGER trg_ExamPreventUpdate
@@ -456,6 +507,7 @@ BEGIN
     END
 END;
 
+GO
 
 
 --! StudentCourses
@@ -474,6 +526,8 @@ BEGIN
     RAISERROR('No operations allowed on this Table', 16, 1)
 END;
 
+GO
+
 
 --* update
 
@@ -485,6 +539,8 @@ AS
 BEGIN
     RAISERROR('No operations allowed on this Table', 16, 1)
 END;
+
+GO
 
 
 --* delete
@@ -498,6 +554,8 @@ AS
 BEGIN
     RAISERROR('No operations allowed on this Table', 16, 1)
 END;
+
+GO
 
 
 --! Student
@@ -537,6 +595,7 @@ BEGIN
             END
 END;
 
+GO
 
 
 
@@ -565,6 +624,7 @@ BEGIN
 
 END;
 
+GO
 
 
 --! TrackCourses
@@ -590,6 +650,8 @@ BEGIN
 
 END;
 
+GO
+
 
 --* update
 
@@ -613,6 +675,8 @@ BEGIN
         END
 
 END;
+
+GO
 
 
 --* delete
@@ -640,6 +704,7 @@ BEGIN
 
 END;
 
+GO
 
 
 -- !   Track
@@ -662,3 +727,5 @@ BEGIN
         END
 
 END ;
+
+GO
