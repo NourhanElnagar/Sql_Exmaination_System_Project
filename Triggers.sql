@@ -528,7 +528,11 @@ BEGIN
             BEGIN
                 DISABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
                 INSERT into StudentCourses(StdID , CrsID)
-                    SELECT  @StdID , CrsID FROM Intake as i JOIN Track as t on t.IntakeID = i.ID AND t.ID = @TrackID AND i.ID = @IntakeID JOIN TrackCourses as tc on tc.TrackID = t.ID ;
+                    SELECT  s.ID , CrsID FROM Student as s JOIN Intake as i
+                        ON s.IntakeID = i.ID AND s.ID = @StdID JOIN Track as t
+                        on t.IntakeID = i.ID AND t.ID = @TrackID AND i.ID = @IntakeID JOIN TrackCourses as tc
+                        on tc.TrackID = t.ID ;
+
                 ENABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
             END
 END;
