@@ -181,17 +181,17 @@ BEGIN
 
                     -- Disable trigger to allow update of exam total mark
                     DISABLE TRIGGER trg_ExamPreventUpdate on Exam;
-
+                    DISABLE TRIGGER trg_ExamPreventUpdateStartTime on Exam;
                     -- Update the total mark of the exam
                     UPDATE Exam
                         SET TotalMark = (SELECT SUM(q.Mark)
                                          FROM question as q JOIN ExamQuestions as eq on eq.QuestionID = q.ID
-                                         WHERE eq.ExamID = @ExamID)
+                                         WHERE eq.ExamID = @ExamID) , StartTime = GETDATE()
                         WHERE ID = @ExamID;
 
                     -- Enable trigger after update
                     ENABLE TRIGGER trg_ExamPreventUpdate on Exam;
-
+                    ENABLE TRIGGER trg_ExamPreventUpdateStartTime on Exam;
                     -- Disable trigger to allow insertion of student exams
                     DISABLE TRIGGER trg_StudentExamInsertPrevent on StudentExams;
 
