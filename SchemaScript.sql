@@ -80,7 +80,7 @@ CREATE TABLE Instructor
   St       nvarchar(50) NOT NULL,
   City     nvarchar(50) NOT NULL,
   Phone    varchar(13)  NOT NULL,
-  HireDate date         NOT NULL DEFAULT GETDATE(),
+  HireDate date          DEFAULT GETDATE(),
   Salary   decimal(8,2) NOT NULL CHECK(Salary > 0),
   SuperID  int                  ,
   CONSTRAINT PK_Instructor PRIMARY KEY (ID)
