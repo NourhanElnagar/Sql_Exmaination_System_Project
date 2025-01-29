@@ -491,6 +491,8 @@ BEGIN
     END
 END;
 
+GO
+
 -- Prevents updating StartTime column in Exam table.
 CREATE TRIGGER trg_ExamPreventUpdateStartTime
 ON Exam
