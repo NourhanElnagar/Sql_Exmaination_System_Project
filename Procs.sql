@@ -129,10 +129,10 @@ GO
 
 
 
-    --* Procedure: sp_GenerateExam
-    --* Description: Generates an exam by inserting questions and assigning it to students.
-    --* Parameters:
-    --*     @ExamID (int) - The ID of the exam to be generated.
+--* Procedure: sp_GenerateExam
+--* Description: Generates an exam by inserting questions and assigning it to students.
+--* Parameters:
+--*     @ExamID (int) - The ID of the exam to be generated.
 
 
 CREATE PROC sp_GenerateExam
