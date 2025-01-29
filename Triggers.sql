@@ -1,4 +1,4 @@
-use ExaminationSystem
+USE ExaminationSystem
 
 GO
 
