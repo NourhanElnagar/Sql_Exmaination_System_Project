@@ -135,7 +135,7 @@ END;
         @ExamID (int) - The ID of the exam to be generated.
 */
 
-Create PROC sp_GenerateExam
+CREATE PROC sp_GenerateExam
 @ExamID int ,
 @ChooseOneCount TINYINT ,
 @TrueFalseCount TINYINT ,
