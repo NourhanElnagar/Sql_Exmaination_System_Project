@@ -100,7 +100,8 @@ CREATE TABLE Intake
   ID        int         NOT NULL IDENTITY(1,1),
   Name      varchar(30) NOT NULL,
   StartDate date        NOT NULL,
-  EndDate   date        NOT NULL CHECK(EndDate > StartDate),
+  EndDate   date        NOT NULL,
+  CONSTRAINT CHK_Date_Validity CHECK (EndDate > StartDate),  -- Table-level constraint
   CONSTRAINT PK_Intake PRIMARY KEY (ID)
 )
 GO
