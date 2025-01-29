@@ -1,8 +1,8 @@
 CREATE TABLE Branch
 (
-  ID    int          NOT NULL IDENTITY(1,1),
-  Phone varchar(13) ,
-  City  nvarchar(20) NOT NULL,
+  ID    INT          NOT NULL IDENTITY(1,1),
+  Phone VARCHAR(13) ,
+  City  NVARCHAR(20) NOT NULL,
   CONSTRAINT PK_Branch PRIMARY KEY (ID)
 )
 GO
@@ -17,17 +17,17 @@ GO
 
 CREATE TABLE BranchTracks
 (
-  BranchID int NOT NULL,
-  TrackID  int NOT NULL,
+  BranchID INT NOT NULL,
+  TrackID  INT NOT NULL,
   CONSTRAINT PK_BranchTracks PRIMARY KEY (BranchID, TrackID)
 )
 GO
 
 CREATE TABLE Course
 (
-  ID       int         NOT NULL IDENTITY(1,1),
-  Name     varchar(50) NOT NULL,
-  Duration smallint    NOT NULL,
+  ID       INT         NOT NULL IDENTITY(1,1),
+  Name     VARCHAR(50) NOT NULL,
+  Duration SMALLINT    NOT NULL,
   CONSTRAINT PK_Course PRIMARY KEY (ID)
 )
 GO
@@ -38,51 +38,51 @@ GO
 
 CREATE TABLE CoursesInstructors
 (
-  CrsID int NOT NULL,
-  InsID int NOT NULL,
+  CrsID INT NOT NULL,
+  InsID INT NOT NULL,
   CONSTRAINT PK_CoursesInstructors PRIMARY KEY (CrsID, InsID)
 )
 GO
 
 CREATE TABLE Exam
 (
-  ID            int           NOT NULL IDENTITY(1,1),
-  Name          varchar(50)   NOT NULL,
-  StartTime     datetime              ,
-  Duration      DECIMAL(3,2)  NOT NULL CHECK(Duration > 0 ),
+  ID            INT          NOT NULL IDENTITY(1,1),
+  Name          VARCHAR(50)  NOT NULL,
+  StartTime     DATETIME              ,
+  Duration      DECIMAL(3,2) NOT NULL CHECK(Duration > 0 ),
   EndTime       AS            DATEADD(hour , Duration , StartTime),
-  QuestionCount tinyint       NOT NULL CHECK(QuestionCount > 0 ),
-  TotalMark     tinyint       DEFAULT  0 ,
-  CrsID         int           NOT NULL,
-  InsID         int           NOT NULL,
+  QuestionCount TINYINT      NOT NULL CHECK(QuestionCount > 0 ),
+  TotalMark     TINYINT      DEFAULT  0 ,
+  CrsID         INT          NOT NULL,
+  InsID         INT          NOT NULL,
   CONSTRAINT PK_Exam PRIMARY KEY (ID)
 )
 GO
 
 CREATE TABLE ExamQuestions
 (
-  ExamID     int NOT NULL,
-  QuestionID int NOT NULL,
+  ExamID     INT NOT NULL,
+  QuestionID INT NOT NULL,
   CONSTRAINT PK_ExamQuestions PRIMARY KEY (ExamID, QuestionID)
 )
 GO
 
 CREATE TABLE Instructor
 (
-  ID       int          NOT NULL IDENTITY(1,1),
-  Fname    nvarchar(30) NOT NULL,
-  Lname    nvarchar(30)         ,
-  BD       date         NOT NULL,
+  ID       INT          NOT NULL IDENTITY(1,1),
+  Fname    NVARCHAR(30) NOT NULL,
+  Lname    NVARCHAR(30)         ,
+  BD       DATE         NOT NULL,
   Age      AS           YEAR(GETDATE()) - YEAR(BD),
-  Gender   varchar(1)   NOT NULL CHECK (Gender in ('m','f')),
-  Email    varchar(50)  NOT NULL,
-  Password varchar(10)  NOT NULL,
-  St       nvarchar(50) NOT NULL,
-  City     nvarchar(50) NOT NULL,
-  Phone    varchar(13)  NOT NULL,
-  HireDate date          DEFAULT GETDATE(),
-  Salary   decimal(8,2) NOT NULL CHECK(Salary > 0),
-  SuperID  int                  ,
+  Gender   VARCHAR(1)   NOT NULL CHECK (Gender IN ('m','f')),
+  Email    VARCHAR(50)  NOT NULL,
+  Password VARCHAR(10)  NOT NULL,
+  St       NVARCHAR(50) NOT NULL,
+  City     NVARCHAR(50) NOT NULL,
+  Phone    VARCHAR(13)  NOT NULL,
+  HireDate DATE         DEFAULT GETDATE(),
+  Salary   DECIMAL(8,2) NOT NULL CHECK(Salary > 0),
+  SuperID  INT                  ,
   CONSTRAINT PK_Instructor PRIMARY KEY (ID)
 )
 GO
@@ -97,11 +97,12 @@ GO
 
 CREATE TABLE Intake
 (
-  ID        int         NOT NULL IDENTITY(1,1),
-  Name      varchar(30) NOT NULL,
-  StartDate date        NOT NULL,
-  EndDate   date        NOT NULL,
-  CONSTRAINT CHK_Date_Validity CHECK (EndDate > StartDate),  -- Table-level constraint
+  ID        INT         NOT NULL IDENTITY(1,1),
+  Name      VARCHAR(30) NOT NULL,
+  StartDate DATE        NOT NULL,
+  EndDate   DATE        NOT NULL,
+  CONSTRAINT CHK_Date_Validity CHECK (EndDate > StartDate),
+  -- Table-level constraint
   CONSTRAINT PK_Intake PRIMARY KEY (ID)
 )
 GO
@@ -112,30 +113,30 @@ GO
 
 CREATE TABLE Question
 (
-  ID            int          NOT NULL IDENTITY(1,1),
-  Body          varchar(150) NOT NULL,
-  Mark          tinyint      NOT NULL CHECK(Mark > 0),
-  CorrectAnswer tinyint              ,
-  TypeID        int          NOT NULL,
-  CrsID         int          NOT NULL,
-  InsID         int          NOT NULL,
+  ID            INT          NOT NULL IDENTITY(1,1),
+  Body          VARCHAR(150) NOT NULL,
+  Mark          TINYINT      NOT NULL CHECK(Mark > 0),
+  CorrectAnswer TINYINT              ,
+  TypeID        INT          NOT NULL,
+  CrsID         INT          NOT NULL,
+  InsID         INT          NOT NULL,
   CONSTRAINT PK_Question PRIMARY KEY (ID)
 )
 GO
 
 CREATE TABLE QuestionOptions
 (
-  QuestionID int         NOT NULL,
-  OptionNum  tinyint     NOT NULL CHECK(OptionNum BETWEEN 1 AND 4),
-  OptionBody varchar(50) NOT NULL,
+  QuestionID INT         NOT NULL,
+  OptionNum  TINYINT     NOT NULL CHECK(OptionNum BETWEEN 1 AND 4),
+  OptionBody VARCHAR(50) NOT NULL,
   CONSTRAINT PK_QuestionOptions PRIMARY KEY (QuestionID, OptionNum)
 )
 GO
 
 CREATE TABLE QuestionTypes
 (
-  ID   int          NOT NULL IDENTITY(1,1),
-  Type nvarchar(30) NOT NULL,
+  ID   INT          NOT NULL IDENTITY(1,1),
+  Type NVARCHAR(30) NOT NULL,
   CONSTRAINT PK_QuestionTypes PRIMARY KEY (ID)
 )
 GO
@@ -146,19 +147,19 @@ GO
 
 CREATE TABLE Student
 (
-  ID       int          NOT NULL IDENTITY(1,1),
-  Fname    nvarchar(30) NOT NULL,
-  Lname    nvarchar(30),
-  BD       date         NOT NULL,
+  ID       INT          NOT NULL IDENTITY(1,1),
+  Fname    NVARCHAR(30) NOT NULL,
+  Lname    NVARCHAR(30),
+  BD       DATE         NOT NULL,
   Age      AS           YEAR(GETDATE()) - YEAR(BD),
-  Gender   varchar(1)   NOT NULL CHECK (Gender in ('m','f')),
-  Email    varchar(50)  NOT NULL,
-  Password varchar(10)  NOT NULL,
-  St       nvarchar(50) NOT NULL,
-  City     nvarchar(50) NOT NULL,
-  Phone    varchar(13)  NOT NULL,
-  IntakeID int          NOT NULL,
-  TrackID  int          NOT NULL,
+  Gender   VARCHAR(1)   NOT NULL CHECK (Gender IN ('m','f')),
+  Email    VARCHAR(50)  NOT NULL,
+  Password VARCHAR(10)  NOT NULL,
+  St       NVARCHAR(50) NOT NULL,
+  City     NVARCHAR(50) NOT NULL,
+  Phone    VARCHAR(13)  NOT NULL,
+  IntakeID INT          NOT NULL,
+  TrackID  INT          NOT NULL,
   CONSTRAINT PK_Student PRIMARY KEY (ID)
 )
 GO
@@ -173,48 +174,48 @@ GO
 
 CREATE TABLE StudentCourses
 (
-  StdID int NOT NULL,
-  CrsID int NOT NULL,
+  StdID INT NOT NULL,
+  CrsID INT NOT NULL,
   CONSTRAINT PK_StudentCourses PRIMARY KEY (StdID, CrsID)
 )
 GO
 
 CREATE TABLE StudentExams
 (
-  StdID  int     NOT NULL,
-  ExamID int     NOT NULL,
-  Grade  tinyint DEFAULT 0 NOT NULL,
+  StdID  INT     NOT NULL,
+  ExamID INT     NOT NULL,
+  Grade  TINYINT DEFAULT 0 NOT NULL,
   CONSTRAINT PK_StudentExams PRIMARY KEY (StdID, ExamID)
 )
 GO
 
 CREATE TABLE StudentsExamsAnswers
 (
-  StdID       int     NOT NULL,
-  QuestionID  int     NOT NULL,
-  ExamID      int     NOT NULL,
-  StdAnswer   tinyint         ,
-  AnswerGrade tinyint         ,
+  StdID       INT     NOT NULL,
+  QuestionID  INT     NOT NULL,
+  ExamID      INT     NOT NULL,
+  StdAnswer   TINYINT         ,
+  AnswerGrade TINYINT         ,
   CONSTRAINT PK_StudentsExamsAnswers PRIMARY KEY (StdID, QuestionID, ExamID)
 )
 GO
 
 CREATE TABLE Topic
 (
-  ID    int         NOT NULL IDENTITY(1,1),
-  CrsID int         NOT NULL,
-  Name  varchar(50) NOT NULL,
+  ID    INT         NOT NULL IDENTITY(1,1),
+  CrsID INT         NOT NULL,
+  Name  VARCHAR(50) NOT NULL,
   CONSTRAINT PK_Topic PRIMARY KEY (ID)
 )
 GO
 
 CREATE TABLE Track
 (
-  ID       int          NOT NULL IDENTITY(1,1),
-  Name     nvarchar(30) NOT NULL,
-  IntakeID int                  ,
-  MngrID   int          NOT NULL,
-  HireDate date         NOT NULL DEFAULT GETDATE(),
+  ID       INT          NOT NULL IDENTITY(1,1),
+  Name     NVARCHAR(30) NOT NULL,
+  IntakeID INT                  ,
+  MngrID   INT          NOT NULL,
+  HireDate DATE         NOT NULL DEFAULT GETDATE(),
   CONSTRAINT PK_Track PRIMARY KEY (ID)
 )
 GO
@@ -225,16 +226,16 @@ GO
 
 CREATE TABLE TrackCourses
 (
-  TrackID int NOT NULL,
-  CrsID   int NOT NULL,
+  TrackID INT NOT NULL,
+  CrsID   INT NOT NULL,
   CONSTRAINT PK_TrackCourses PRIMARY KEY (TrackID, CrsID)
 )
 GO
 
 CREATE TABLE TrackInstructors
 (
-  TrackID int NOT NULL,
-  InsID   int NOT NULL,
+  TrackID INT NOT NULL,
+  InsID   INT NOT NULL,
   CONSTRAINT PK_TrackInstructors PRIMARY KEY (TrackID, InsID)
 )
 GO

@@ -9,18 +9,21 @@ GO
 
 -- This trigger prevents inserting options for questions that are already in exams.
 
-create TRIGGER trg_questionOptionsPreventInsert
+CREATE TRIGGER trg_questionOptionsPreventInsert
 ON QuestionOptions
-after insert
-as
+after INSERT
+AS
 BEGIN
-    DECLARE @QuesID int
-    SELECT @QuesID = QuestionID FROM inserted
-    IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID)
+    DECLARE @QuesID INT
+    SELECT @QuesID = QuestionID
+    FROM inserted
+    IF EXISTS(SELECT 1
+    FROM ExamQuestions
+    WHERE QuestionID = @QuesID)
         BEGIN
-            ROLLBACK
-            RAISERROR('you can not insert option for question that is already in exams',16,1)
-        END
+        ROLLBACK
+        RAISERROR('you can not insert option for question that is already in exams',16,1)
+    END
 
 END;
 
@@ -33,17 +36,23 @@ GO
 
 CREATE TRIGGER trg_questionOptionsPreventUpdate
 ON QuestionOptions
-after update
-as
+after UPDATE
+AS
 BEGIN
-    DECLARE @QuesID int , @NewQuesID int
-    SELECT @QuesID = QuestionID FROM deleted
-    SELECT @NewQuesID = QuestionID FROM inserted
-    IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID) OR exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @NewQuesID)
+    DECLARE @QuesID INT , @NewQuesID INT
+    SELECT @QuesID = QuestionID
+    FROM deleted
+    SELECT @NewQuesID = QuestionID
+    FROM inserted
+    IF EXISTS(SELECT 1
+        FROM ExamQuestions
+        WHERE QuestionID = @QuesID) OR EXISTS(SELECT 1
+        FROM ExamQuestions
+        WHERE QuestionID = @NewQuesID)
         BEGIN
-            ROLLBACK
-            RAISERROR('you can not update options for question that is already in exams',16,1)
-        END
+        ROLLBACK
+        RAISERROR('you can not update options for question that is already in exams',16,1)
+    END
 
 END;
 
@@ -54,18 +63,21 @@ GO
 
 -- This trigger prevents deletion of question options if the question is already used in exams.
 
-create TRIGGER trg_questionOptionsPreventDelete
+CREATE TRIGGER trg_questionOptionsPreventDelete
 ON QuestionOptions
-after delete
-as
+after DELETE
+AS
 BEGIN
-    DECLARE @QuesID int
-    SELECT @QuesID = QuestionID FROM deleted
-    IF exists(SELECT 1 FROM ExamQuestions WHERE QuestionID = @QuesID)
+    DECLARE @QuesID INT
+    SELECT @QuesID = QuestionID
+    FROM deleted
+    IF EXISTS(SELECT 1
+    FROM ExamQuestions
+    WHERE QuestionID = @QuesID)
         BEGIN
-            ROLLBACK
-            RAISERROR('you can not delete options for question that is already in exams',16,1)
-        END
+        ROLLBACK
+        RAISERROR('you can not delete options for question that is already in exams',16,1)
+    END
 
 END;
 
@@ -83,11 +95,16 @@ INSTEAD OF INSERT
 AS
 BEGIN
     DECLARE @CrsID INT, @InsID INT
-    SELECT @CrsID = i.CrsID, @InsID = i.InsID FROM inserted AS i
-    IF EXISTS (SELECT ci.CrsID FROM CoursesInstructors AS ci WHERE ci.CrsID = @CrsID AND ci.InsID = @InsID)
+    SELECT @CrsID = i.CrsID, @InsID = i.InsID
+    FROM inserted AS i
+    IF EXISTS (SELECT ci.CrsID
+    FROM CoursesInstructors AS ci
+    WHERE ci.CrsID = @CrsID AND ci.InsID = @InsID)
     BEGIN
-        INSERT INTO question(Body, Mark, CorrectAnswer, TypeID, CrsID, InsID)
-        SELECT Body, Mark, CorrectAnswer, TypeID, CrsID, InsID FROM inserted
+        INSERT INTO question
+            (Body, Mark, CorrectAnswer, TypeID, CrsID, InsID)
+        SELECT Body, Mark, CorrectAnswer, TypeID, CrsID, InsID
+        FROM inserted
     END
     ELSE
         RAISERROR('operation failed', 12, 1)
@@ -105,17 +122,23 @@ AFTER UPDATE
 AS
 BEGIN
     DECLARE @ID INT, @CrsID INT, @InsID INT
-    SELECT @ID = ID, @InsID = InsID, @CrsID = CrsID FROM inserted
-    IF EXISTS (SELECT 1 FROM ExamQuestions AS ea WHERE ea.QuestionID = @ID)
+    SELECT @ID = ID, @InsID = InsID, @CrsID = CrsID
+    FROM inserted
+    IF EXISTS (SELECT 1
+    FROM ExamQuestions AS ea
+    WHERE ea.QuestionID = @ID)
     BEGIN
         ROLLBACK
         RAISERROR('not allowed to update question that already in students exams', 14, 1)
     END
     ELSE IF UPDATE(CrsID) OR UPDATE(InsID)
     BEGIN
-        IF NOT EXISTS (SELECT ci.CrsID FROM CoursesInstructors AS ci WHERE ci.CrsID = @CrsID AND ci.InsID = @InsID)
+        IF NOT EXISTS (SELECT ci.CrsID
+        FROM CoursesInstructors AS ci
+        WHERE ci.CrsID = @CrsID AND ci.InsID = @InsID)
         BEGIN
-            SELECT @CrsID = CrsID, @InsID = InsID FROM deleted;
+            SELECT @CrsID = CrsID, @InsID = InsID
+            FROM deleted;
             UPDATE question
             SET CrsID = @CrsID, InsID = @InsID
             WHERE ID = @ID
@@ -140,8 +163,11 @@ AFTER INSERT
 AS
 BEGIN
     DECLARE @ID INT, @CorrectAnswer INT
-    SELECT @ID = ID, @CorrectAnswer = CorrectAnswer FROM inserted
-    IF NOT EXISTS (SELECT qa.OptionNum FROM QuestionOptions AS qa WHERE qa.OptionNum = @CorrectAnswer AND qa.QuestionID = @ID)
+    SELECT @ID = ID, @CorrectAnswer = CorrectAnswer
+    FROM inserted
+    IF NOT EXISTS (SELECT qa.OptionNum
+    FROM QuestionOptions AS qa
+    WHERE qa.OptionNum = @CorrectAnswer AND qa.QuestionID = @ID)
     BEGIN
         SET @CorrectAnswer = NULL;
         UPDATE question
@@ -164,12 +190,16 @@ AFTER UPDATE
 AS
 BEGIN
     DECLARE @ID INT, @CorrectAnswer INT
-    SELECT @ID = ID, @CorrectAnswer = CorrectAnswer FROM inserted
+    SELECT @ID = ID, @CorrectAnswer = CorrectAnswer
+    FROM inserted
     IF UPDATE(CorrectAnswer)
     BEGIN
-        IF NOT EXISTS (SELECT qa.OptionNum FROM QuestionOptions AS qa WHERE qa.OptionNum = @CorrectAnswer AND qa.QuestionID = @ID)
+        IF NOT EXISTS (SELECT qa.OptionNum
+        FROM QuestionOptions AS qa
+        WHERE qa.OptionNum = @CorrectAnswer AND qa.QuestionID = @ID)
         BEGIN
-            SELECT @CorrectAnswer = CorrectAnswer FROM deleted;
+            SELECT @CorrectAnswer = CorrectAnswer
+            FROM deleted;
             UPDATE question
             SET CorrectAnswer = @CorrectAnswer
             WHERE ID = @ID
@@ -189,7 +219,7 @@ GO
 
 -- This trigger prevents any insert operations on the ExamQuestions table by raising an error.
 
-create TRIGGER trg_ExamQuestionsPreventInsert
+CREATE TRIGGER trg_ExamQuestionsPreventInsert
 ON ExamQuestions
 INSTEAD OF INSERT
 AS
@@ -211,9 +241,13 @@ AFTER UPDATE
 AS
 BEGIN
     DECLARE @QuesID INT, @ExamID INT, @QuesCrs INT, @QuesMark INT, @NewQuesID INT, @NewExamID INT, @NewQuesMark INT
-    SELECT @ExamID = ExamID, @QuesID = QuestionID FROM deleted AS e
-    SELECT @NewQuesID = i.QuestionID, @NewExamID = ExamID FROM inserted AS i
-    SELECT @QuesCrs = CrsID, @NewQuesMark = Mark FROM question WHERE ID = @NewQuesID
+    SELECT @ExamID = ExamID, @QuesID = QuestionID
+    FROM deleted AS e
+    SELECT @NewQuesID = i.QuestionID, @NewExamID = ExamID
+    FROM inserted AS i
+    SELECT @QuesCrs = CrsID, @NewQuesMark = Mark
+    FROM question
+    WHERE ID = @NewQuesID
     IF @ExamID != @NewExamID
     BEGIN
         UPDATE ExamQuestions
@@ -221,12 +255,16 @@ BEGIN
         WHERE ExamID = @NewExamID AND QuestionID = @NewQuesID;
         RAISERROR('You cannot change Exam', 16, 1)
     END
-    ELSE IF NOT EXISTS (SELECT 1 FROM exam AS e WHERE e.CrsID = @QuesCrs AND ID = @ExamID)
+    ELSE IF NOT EXISTS (SELECT 1
+    FROM exam AS e
+    WHERE e.CrsID = @QuesCrs AND ID = @ExamID)
     BEGIN
         UPDATE ExamQuestions
         SET ExamID = @ExamID, QuestionID = @QuesID
         WHERE ExamID = @NewExamID AND QuestionID = @NewQuesID;
-        IF EXISTS (SELECT 1 FROM StudentExams WHERE ExamID = @ExamID)
+        IF EXISTS (SELECT 1
+        FROM StudentExams
+        WHERE ExamID = @ExamID)
         BEGIN
             RAISERROR('Exam already launched', 16, 1)
             RETURN;
@@ -234,7 +272,9 @@ BEGIN
     END
     ELSE
     BEGIN
-        SELECT @QuesMark = Mark FROM question WHERE ID = @QuesID
+        SELECT @QuesMark = Mark
+        FROM question
+        WHERE ID = @QuesID
         UPDATE Exam
         SET TotalMark += (@NewQuesMark - @QuesMark)
         WHERE ID = @ExamID;
@@ -258,10 +298,16 @@ AFTER INSERT
 AS
 BEGIN
     DECLARE @stdID INT, @QuesID INT, @ExamID INT, @StdAnswer INT, @AnswerGrade TINYINT , @ExamEndTime DATETIME
-    SELECT @stdID = StdID, @QuesID = QuestionID, @ExamID = ExamID, @StdAnswer = StdAnswer FROM inserted
-    SELECT @ExamEndTime = EndTime FROM Exam WHERE ID = @ExamID
-    IF NOT EXISTS (SELECT 1 FROM StudentExams AS se JOIN ExamQuestions AS eq ON eq.ExamID = se.ExamID AND eq.ExamID = @ExamID AND se.StdID = @stdID AND eq.QuestionID = @QuesID)
-        OR NOT EXISTS (SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID AND OptionNum = @StdAnswer)
+    SELECT @stdID = StdID, @QuesID = QuestionID, @ExamID = ExamID, @StdAnswer = StdAnswer
+    FROM inserted
+    SELECT @ExamEndTime = EndTime
+    FROM Exam
+    WHERE ID = @ExamID
+    IF NOT EXISTS (SELECT 1
+        FROM StudentExams AS se JOIN ExamQuestions AS eq ON eq.ExamID = se.ExamID AND eq.ExamID = @ExamID AND se.StdID = @stdID AND eq.QuestionID = @QuesID)
+        OR NOT EXISTS (SELECT 1
+        FROM QuestionOptions
+        WHERE QuestionID = @QuesID AND OptionNum = @StdAnswer)
     BEGIN
         ROLLBACK
         RAISERROR('Wrong inputs', 16, 1)
@@ -269,12 +315,14 @@ BEGIN
     END
     ELSE IF (GETDATE() > @ExamEndTime)
         BEGIN
-            ROLLBACK
+        ROLLBACK
         RAISERROR('Exam TimeOut', 16, 1)
-        END
+    END
     ELSE
     BEGIN
-        SELECT @AnswerGrade = IIF(@StdAnswer = CorrectAnswer, Mark, 0) FROM question AS q WHERE q.ID = @QuesID
+        SELECT @AnswerGrade = IIF(@StdAnswer = CorrectAnswer, Mark, 0)
+        FROM question AS q
+        WHERE q.ID = @QuesID
         BEGIN TRY
             BEGIN TRANSACTION
 
@@ -282,7 +330,7 @@ BEGIN
             SET AnswerGrade = @AnswerGrade
             WHERE StdID = @stdID AND QuestionID = @QuesID AND ExamID = @ExamID;
 
-           disable TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams ;
+           DISABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams ;
 
             UPDATE StudentExams
             SET Grade += @AnswerGrade
@@ -305,15 +353,19 @@ GO
 
 --* update
 -- This trigger prevents updates to the StudentsExamsAnswers table after the exam end time and ensures only valid updates to student answers.
-create TRIGGER trg_StudentsExamsAnswersPreventUpdate
+CREATE TRIGGER trg_StudentsExamsAnswersPreventUpdate
 ON StudentsExamsAnswers
 AFTER UPDATE
 AS
 BEGIN
     DECLARE @StdID INT, @QuesID INT, @ExamID INT, @StdAnswer TINYINT, @NStdAnswer TINYINT, @OAnswerGrade TINYINT, @NAnswerGrade TINYINT, @ExamEndTime DATETIME
-    SELECT @StdID = StdID, @QuesID = QuestionID, @ExamID = ExamID, @OAnswerGrade = AnswerGrade FROM deleted;
-    SELECT @NStdAnswer = StdAnswer FROM inserted;
-    SELECT @ExamEndTime = EndTime FROM Exam WHERE ID = @ExamID;
+    SELECT @StdID = StdID, @QuesID = QuestionID, @ExamID = ExamID, @OAnswerGrade = AnswerGrade
+    FROM deleted;
+    SELECT @NStdAnswer = StdAnswer
+    FROM inserted;
+    SELECT @ExamEndTime = EndTime
+    FROM Exam
+    WHERE ID = @ExamID;
 
     IF (GETDATE() > @ExamEndTime)
     BEGIN
@@ -325,8 +377,11 @@ BEGIN
         ROLLBACK;
         RAISERROR('you can update your answer only', 16, 1);
     END
-    ELSE IF NOT EXISTS (SELECT 1 FROM StudentExams AS se JOIN ExamQuestions AS eq ON eq.ExamID = se.ExamID AND eq.ExamID = @ExamID AND se.StdID = @StdID AND eq.QuestionID = @QuesID)
-        OR NOT EXISTS (SELECT 1 FROM QuestionOptions WHERE QuestionID = @QuesID AND OptionNum = @NStdAnswer)
+    ELSE IF NOT EXISTS (SELECT 1
+        FROM StudentExams AS se JOIN ExamQuestions AS eq ON eq.ExamID = se.ExamID AND eq.ExamID = @ExamID AND se.StdID = @StdID AND eq.QuestionID = @QuesID)
+        OR NOT EXISTS (SELECT 1
+        FROM QuestionOptions
+        WHERE QuestionID = @QuesID AND OptionNum = @NStdAnswer)
     BEGIN
         ROLLBACK;
         RAISERROR('Wrong inputs', 16, 1);
@@ -334,7 +389,9 @@ BEGIN
     END
     ELSE
     BEGIN
-        SELECT @NAnswerGrade = IIF(@NStdAnswer = CorrectAnswer, Mark, 0) FROM question AS q WHERE q.ID = @QuesID;
+        SELECT @NAnswerGrade = IIF(@NStdAnswer = CorrectAnswer, Mark, 0)
+        FROM question AS q
+        WHERE q.ID = @QuesID;
         BEGIN TRY
             BEGIN TRANSACTION;
 
@@ -373,7 +430,7 @@ ON StudentsExamsAnswers
 INSTEAD OF DELETE
 AS
 BEGIN
-RAISERROR('You can not delete from this table',16,1)
+    RAISERROR('You can not delete from this table',16,1)
 
 END ;
 
@@ -458,11 +515,16 @@ INSTEAD OF INSERT
 AS
 BEGIN
     DECLARE @ID INT, @Name VARCHAR(50), @CrsID INT, @InsID INT, @Duration DECIMAL(3,2), @QuestionCount INT
-    SELECT @ID = ID, @Name = Name, @CrsID = CrsID, @InsID = InsID, @Duration = Duration, @QuestionCount = QuestionCount FROM inserted
-    IF EXISTS (SELECT 1 FROM CoursesInstructors WHERE CrsID = @CrsID AND InsID = @InsID)
+    SELECT @ID = ID, @Name = Name, @CrsID = CrsID, @InsID = InsID, @Duration = Duration, @QuestionCount = QuestionCount
+    FROM inserted
+    IF EXISTS (SELECT 1
+    FROM CoursesInstructors
+    WHERE CrsID = @CrsID AND InsID = @InsID)
     BEGIN
-        INSERT INTO Exam(Name, StartTime, Duration, QuestionCount, TotalMark, CrsID, InsID)
-        VALUES (@Name, NULL, @Duration, @QuestionCount, 0, @CrsID, @InsID);
+        INSERT INTO Exam
+            (Name, StartTime, Duration, QuestionCount, TotalMark, CrsID, InsID)
+        VALUES
+            (@Name, NULL, @Duration, @QuestionCount, 0, @CrsID, @InsID);
     END
     ELSE
         RAISERROR('insert valid values', 16, 1)
@@ -478,7 +540,8 @@ AFTER UPDATE
 AS
 BEGIN
     DECLARE @StartTime DATETIME
-    SELECT @StartTime = StartTime FROM deleted
+    SELECT @StartTime = StartTime
+    FROM deleted
     IF (@StartTime IS NOT NULL)
     BEGIN
         ROLLBACK
@@ -500,7 +563,8 @@ AFTER UPDATE
 AS
 BEGIN
     DECLARE @StartTime DATETIME
-    SELECT @StartTime = StartTime FROM deleted
+    SELECT @StartTime = StartTime
+    FROM deleted
     IF UPDATE(StartTime)
     BEGIN
         ROLLBACK
@@ -551,7 +615,7 @@ GO
 
 CREATE TRIGGER trg_StudentCoursesPreventDelete
 ON StudentCourses
-INSTEAD OF delete
+INSTEAD OF DELETE
 AS
 BEGIN
     RAISERROR('No operations allowed on this Table', 16, 1)
@@ -575,26 +639,34 @@ ON Student
 AFTER INSERT
 AS
 BEGIN
-    DECLARE  @IntackStartDate date ,  @StdID INT , @IntakeID INT , @TrackID INT
-    SELECT @StdID = ID , @IntakeID = IntakeID , @TrackID = TrackID FROM inserted ;
-    SELECT @IntackStartDate = StartDate FROM Track as t join Intake as i on t.IntakeID = i.ID AND i.ID = @IntakeID AND t.ID = @TrackID
+    DECLARE  @IntackStartDate DATE ,  @StdID INT , @IntakeID INT , @TrackID INT
+    SELECT @StdID = ID , @IntakeID = IntakeID , @TrackID = TrackID
+    FROM inserted
+    ;
+    SELECT @IntackStartDate = StartDate
+    FROM Track AS t JOIN Intake AS i ON t.IntakeID = i.ID AND i.ID = @IntakeID AND t.ID = @TrackID
 
-            IF NOT EXISTS(SELECT 1 FROM Track WHERE ID = @TrackID AND IntakeID = @IntakeID) OR (GETDATE() > @IntackStartDate)
+    IF NOT EXISTS(SELECT 1
+        FROM Track
+        WHERE ID = @TrackID AND IntakeID = @IntakeID) OR (GETDATE() > @IntackStartDate)
             BEGIN
-                ROLLBACK
-                RAISERROR('Insert correct intake and track',16,1)
-            END
+        ROLLBACK
+        RAISERROR('Insert correct intake and track',16,1)
+    END
         ELSE
             BEGIN
-                DISABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
-                INSERT into StudentCourses(StdID , CrsID)
-                    SELECT  s.ID , CrsID FROM Student as s JOIN Intake as i
-                        ON s.IntakeID = i.ID AND s.ID = @StdID JOIN Track as t
-                        on t.IntakeID = i.ID AND t.ID = @TrackID AND i.ID = @IntakeID JOIN TrackCourses as tc
-                        on tc.TrackID = t.ID ;
+    DISABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
+    INSERT INTO StudentCourses
+        (StdID , CrsID)
+    SELECT s.ID , CrsID
+    FROM Student AS s JOIN Intake AS i
+        ON s.IntakeID = i.ID AND s.ID = @StdID JOIN Track AS t
+        ON t.IntakeID = i.ID AND t.ID = @TrackID AND i.ID = @IntakeID JOIN TrackCourses AS tc
+        ON tc.TrackID = t.ID
+    ;
 
-                ENABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
-            END
+    ENABLE TRIGGER trg_StudentCoursesPreventInsert ON StudentCourses ;
+END
 END;
 
 GO
@@ -614,11 +686,14 @@ ON Student
 AFTER UPDATE
 AS
 BEGIN
-    DECLARE @IntackStartDate date ,  @StdID INT , @IntakeID INT , @TrackID INT
-    SELECT @StdID = ID , @IntakeID = IntakeID , @TrackID = TrackID FROM inserted ;
-    SELECT @IntackStartDate = StartDate FROM Track as t join Intake as i on t.IntakeID = i.ID AND i.ID = @IntakeID AND t.ID = @TrackID
+    DECLARE @IntackStartDate DATE ,  @StdID INT , @IntakeID INT , @TrackID INT
+    SELECT @StdID = ID , @IntakeID = IntakeID , @TrackID = TrackID
+    FROM inserted
+    ;
+    SELECT @IntackStartDate = StartDate
+    FROM Track AS t JOIN Intake AS i ON t.IntakeID = i.ID AND i.ID = @IntakeID AND t.ID = @TrackID
 
-     IF UPDATE(TrackID) OR UPDATE(IntakeID)
+    IF UPDATE(TrackID) OR UPDATE(IntakeID)
     BEGIN
         ROLLBACK
         RAISERROR('you cannot update track or intake ', 16, 1)
@@ -643,12 +718,15 @@ AFTER INSERT
 AS
 BEGIN
     DECLARE @TrackID INT
-    SELECT @TrackID = TrackID FROM inserted
-    IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
+    SELECT @TrackID = TrackID
+    FROM inserted
+    IF EXISTS(SELECT 1
+    FROM Student
+    WHERE TrackID = @TrackID)
         BEGIN
-            ROLLBACK
-            RAISERROR('can not add course to track that have students registered',16,1)
-        END
+        ROLLBACK
+        RAISERROR('can not add course to track that have students registered',16,1)
+    END
 
 END;
 
@@ -668,13 +746,19 @@ AFTER UPDATE
 AS
 BEGIN
     DECLARE @OTrackID INT , @NTrackID  INT
-    SELECT @OTrackID = TrackID FROM deleted
-    SELECT @NTrackID = TrackID FROM inserted
-    IF exists(select 1 FROM Student WHERE TrackID = @OTrackID) OR exists(select 1 FROM Student WHERE TrackID = @NTrackID)
+    SELECT @OTrackID = TrackID
+    FROM deleted
+    SELECT @NTrackID = TrackID
+    FROM inserted
+    IF EXISTS(SELECT 1
+        FROM Student
+        WHERE TrackID = @OTrackID) OR EXISTS(SELECT 1
+        FROM Student
+        WHERE TrackID = @NTrackID)
         BEGIN
-            ROLLBACK
-            RAISERROR('can not update course to track that have students registered',16,1)
-        END
+        ROLLBACK
+        RAISERROR('can not update course to track that have students registered',16,1)
+    END
 
 END;
 
@@ -696,13 +780,16 @@ ON TrackCourses
 AFTER DELETE
 AS
 BEGIN
-     DECLARE @TrackID INT
-     SELECT @TrackID = TrackID FROM deleted
-    IF exists(select 1 FROM Student WHERE TrackID = @TrackID)
+    DECLARE @TrackID INT
+    SELECT @TrackID = TrackID
+    FROM deleted
+    IF EXISTS(SELECT 1
+    FROM Student
+    WHERE TrackID = @TrackID)
         BEGIN
-            ROLLBACK
-            RAISERROR('can not delete course FROM track that have students registered',16,1)
-        END
+        ROLLBACK
+        RAISERROR('can not delete course FROM track that have students registered',16,1)
+    END
 
 END;
 
@@ -720,13 +807,16 @@ ON Track
 AFTER UPDATE
 AS
 BEGIN
-    DECLARE @IntakeID int
-    SELECT @IntakeID = IntakeID FROM deleted
-    IF UPDATE(IntakeID) AND  EXISTS(SELECT 1 FROM Student WHERE IntakeID = @IntakeID)
+    DECLARE @IntakeID INT
+    SELECT @IntakeID = IntakeID
+    FROM deleted
+    IF UPDATE(IntakeID) AND EXISTS(SELECT 1
+        FROM Student
+        WHERE IntakeID = @IntakeID)
         BEGIN
-            ROLLBACK
-            RAISERROR('you can not update track for launched intake',16,1)
-        END
+        ROLLBACK
+        RAISERROR('you can not update track for launched intake',16,1)
+    END
 
 END ;
 
