@@ -138,7 +138,7 @@ GO
 CREATE PROC sp_GenerateExam
 @ExamID int ,
 @ChooseOneCount TINYINT ,
-@TrueFalseCount TINYINT ,
+@TrueFalseCount TINYINT
 
 AS
 BEGIN
@@ -171,7 +171,7 @@ BEGIN
                     -- Insert multiple choice questions into the exam
                     INSERT INTO ExamQuestions(ExamID, QuestionID)
                         SELECT TOP(@ChooseOneCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 1 AND q.CrsID = @CrsID ORDER by NEWID()
-                        UNION   All
+                        UNION ALL
                         -- Insert true/false questions into the exam
                         SELECT TOP(@TrueFalseCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 2 AND q.CrsID = @CrsID ORDER by NEWID();
                     -- Enable trigger after insertion
