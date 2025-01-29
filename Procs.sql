@@ -1,4 +1,4 @@
-use ExaminationSystem
+USE ExaminationSystem
 
 --Student
 
@@ -143,7 +143,10 @@ END;
 */
 
 Create PROC sp_GenerateExam
-@ExamID int
+@ExamID int ,
+@ChooseOneCount TINYINT ,
+@TrueFalseCount TINYINT ,
+
 AS
 BEGIN
     -- Declare variables for exam start time, course ID, and question count
@@ -174,8 +177,9 @@ BEGIN
 
                     -- Insert questions into the exam
                     INSERT INTO ExamQuestions(ExamID, QuestionID)
-                        SELECT TOP(@QuesCount) @ExamID, ID FROM question WHERE CrsID = @CrsID ORDER by NEWID();
-
+                        SELECT TOP(@ChooseOneCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 1 AND q.CrsID = @CrsID ORDER by NEWID()
+                        UNION   All
+                        SELECT TOP(@TrueFalseCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 2 AND q.CrsID = @CrsID ORDER by NEWID()
                     -- Enable trigger after insertion
                     ENABLE TRIGGER trg_ExamQuestionsPreventInsert on ExamQuestions;
 
