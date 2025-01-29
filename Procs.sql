@@ -170,10 +170,10 @@ BEGIN
 
                     -- Insert multiple choice questions into the exam
                     INSERT INTO ExamQuestions(ExamID, QuestionID)
-                        SELECT TOP(@ChooseOneCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 1 AND q.CrsID = @CrsID ORDER by NEWID()
-                        UNION ALL
+                        SELECT TOP(@ChooseOneCount) @ExamID, q.ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 1 AND q.CrsID = @CrsID ORDER by NEWID()
                         -- Insert true/false questions into the exam
-                        SELECT TOP(@TrueFalseCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 2 AND q.CrsID = @CrsID ORDER by NEWID();
+                    INSERT INTO ExamQuestions(ExamID, QuestionID)
+                        SELECT TOP(@TrueFalseCount) @ExamID, q.ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 2 AND q.CrsID = @CrsID ORDER by NEWID();
                     -- Enable trigger after insertion
                     ENABLE TRIGGER trg_ExamQuestionsPreventInsert on ExamQuestions;
 
