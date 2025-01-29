@@ -127,13 +127,6 @@ END;
 
 
 
--- TRIGGER trg_ExamPreventUpdateStartTime
-
---trg_StudentExamInsertPrevent
-
---TRIGGER trg_ExamQuestionsPreventInsert
-
-
 
 /*
     Procedure: sp_GenerateExam
@@ -175,18 +168,19 @@ BEGIN
                     -- Disable trigger to allow insertion of exam questions
                     DISABLE TRIGGER trg_ExamQuestionsPreventInsert on ExamQuestions;
 
-                    -- Insert questions into the exam
+                    -- Insert multiple choice questions into the exam
                     INSERT INTO ExamQuestions(ExamID, QuestionID)
                         SELECT TOP(@ChooseOneCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 1 AND q.CrsID = @CrsID ORDER by NEWID()
                         UNION   All
-                        SELECT TOP(@TrueFalseCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 2 AND q.CrsID = @CrsID ORDER by NEWID()
+                        -- Insert true/false questions into the exam
+                        SELECT TOP(@TrueFalseCount) @ExamID, ID FROM question as q JOIN QuestionTypes as qt ON q.TypeID = qt.ID AND qt.ID = 2 AND q.CrsID = @CrsID ORDER by NEWID();
                     -- Enable trigger after insertion
                     ENABLE TRIGGER trg_ExamQuestionsPreventInsert on ExamQuestions;
 
                     -- Disable trigger to allow update of exam total mark
                     DISABLE TRIGGER trg_ExamPreventUpdate on Exam;
                     DISABLE TRIGGER trg_ExamPreventUpdateStartTime on Exam;
-                    -- Update the total mark of the exam
+                    -- Update the total mark and start time of the exam
                     UPDATE Exam
                         SET TotalMark = (SELECT SUM(q.Mark)
                                          FROM question as q JOIN ExamQuestions as eq on eq.QuestionID = q.ID
@@ -199,7 +193,7 @@ BEGIN
                     -- Disable trigger to allow insertion of student exams
                     DISABLE TRIGGER trg_StudentExamInsertPrevent on StudentExams;
 
-                    -- Insert student exams
+                    -- Assign the exam to students
                     INSERT INTO StudentExams(StdID, ExamID)
                     SELECT s.ID, @ExamID
                     FROM Student AS s
