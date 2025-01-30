@@ -384,7 +384,7 @@ GO
 
 
 -- This trigger prevents updates to the StudentsExamsAnswers table after the exam end time and ensures only valid updates to student answers.
-ALTER TRIGGER trg_StudentsExamsAnswersPreventUpdate
+CREATE TRIGGER trg_StudentsExamsAnswersPreventUpdate
 ON StudentsExamsAnswers
 AFTER UPDATE
 AS
