@@ -220,7 +220,7 @@ BEGIN
             WHERE ID = @ID
         END
         ELSE
-            PRINT 'your input does not exist in question options';
+            RAISERROR( 'your input does not exist in question options',16,1);
     END
 
 END;
@@ -357,7 +357,7 @@ BEGIN
             COMMIT TRANSACTION
         END TRY
         BEGIN CATCH
-            PRINT 'Operation Failed'
+            RAISERROR('Operation Failed' , 16,1)
             ROLLBACK TRANSACTION
         END CATCH
     END
@@ -440,7 +440,7 @@ BEGIN
             COMMIT TRANSACTION;
         END TRY
         BEGIN CATCH
-            PRINT 'Operation Failed';
+            RAISERROR('Operation Failed' , 16,1);
             ROLLBACK TRANSACTION;
         END CATCH
     END
