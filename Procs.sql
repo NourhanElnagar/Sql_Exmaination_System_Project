@@ -192,8 +192,8 @@ BEGIN
                     -- Update the total mark and start time of the exam
                     UPDATE Exam
                         SET TotalMark = (SELECT SUM(q.Mark)
-        FROM question AS q JOIN ExamQuestions AS eq ON eq.QuestionID = q.ID
-        WHERE eq.ExamID = @ExamID) , StartTime = GETDATE()
+                            FROM question AS q JOIN ExamQuestions AS eq ON eq.QuestionID = q.ID
+                            WHERE eq.ExamID = @ExamID) , StartTime = GETDATE()
                         WHERE ID = @ExamID;
 
                     -- Enable trigger after update
