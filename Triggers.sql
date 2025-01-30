@@ -3,6 +3,19 @@ USE ExaminationSystem
 GO
 
 
+--! QuestionType
+
+-- Prevents deletion and update operations on the QuestionTypes table by raising an error
+
+CREATE TRIGGER trg_QuestionTypes
+ON QuestionTypes
+INSTEAD OF UPDATE,DELETE
+AS
+BEGIN
+	RaisError('You cannot delete or update',16 ,1);
+END
+GO
+
 -- ! questionOptions
 
 --* insert
