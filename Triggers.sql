@@ -339,11 +339,12 @@ BEGIN
         FROM question AS q
         WHERE q.ID = @QuesID
         BEGIN TRY
-            BEGIN TRANSACTION
-
+            BEGIN TRANSACTION;
+            DISABLE TRIGGER trg_StudentsExamsAnswersPreventUpdate ON StudentsExamsAnswers ;
             UPDATE StudentsExamsAnswers
             SET AnswerGrade = @AnswerGrade
             WHERE StdID = @stdID AND QuestionID = @QuesID AND ExamID = @ExamID;
+            ENABLE TRIGGER trg_StudentsExamsAnswersPreventUpdate ON StudentsExamsAnswers ;
 
            DISABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams ;
 
