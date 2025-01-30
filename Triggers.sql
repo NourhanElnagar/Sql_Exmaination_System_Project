@@ -5,6 +5,8 @@ GO
 
 --! QuestionType
 
+
+--* update & delete 
 -- Prevents deletion and update operations on the QuestionTypes table by raising an error
 
 CREATE TRIGGER trg_QuestionTypes
