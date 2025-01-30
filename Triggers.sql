@@ -368,8 +368,23 @@ GO
 
 
 --* update
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 -- This trigger prevents updates to the StudentsExamsAnswers table after the exam end time and ensures only valid updates to student answers.
-CREATE TRIGGER trg_StudentsExamsAnswersPreventUpdate
+ALTER TRIGGER trg_StudentsExamsAnswersPreventUpdate
 ON StudentsExamsAnswers
 AFTER UPDATE
 AS
@@ -410,7 +425,6 @@ BEGIN
         WHERE q.ID = @QuesID;
         BEGIN TRY
             BEGIN TRANSACTION;
-
             UPDATE StudentsExamsAnswers
             SET AnswerGrade = @NAnswerGrade
             WHERE StdID = @StdID AND QuestionID = @QuesID AND ExamID = @ExamID;
@@ -418,7 +432,7 @@ BEGIN
             DISABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams;
 
             UPDATE StudentExams
-            SET Grade += (@NAnswerGrade - @OAnswerGrade)
+            SET Grade = (select SUM(sea.AnswerGrade) FROM question as q JOIN StudentsExamsAnswers sea on sea.QuestionID = q.ID AND  StdID = @StdID AND ExamID = @ExamID)
             WHERE StdID = @StdID AND ExamID = @ExamID;
 
             ENABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams;
