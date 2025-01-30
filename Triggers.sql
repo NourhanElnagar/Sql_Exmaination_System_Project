@@ -432,7 +432,7 @@ BEGIN
             DISABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams;
 
             UPDATE StudentExams
-            SET Grade = (select SUM(sea.AnswerGrade) FROM question as q JOIN StudentsExamsAnswers sea on sea.QuestionID = q.ID AND  StdID = @StdID AND ExamID = @ExamID)
+            SET Grade = Grade -  @OAnswerGrade + @NAnswerGrade
             WHERE StdID = @StdID AND ExamID = @ExamID;
 
             ENABLE TRIGGER trg_StudentExamPreventUpdateGrade ON StudentExams;
