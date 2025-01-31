@@ -544,7 +544,7 @@ ON Exam
 INSTEAD OF INSERT
 AS
 BEGIN
-    DECLARE @ID INT, @Name VARCHAR(50), @CrsID INT, @InsID INT, @Duration DECIMAL(3,2), @QuestionCount INT
+    DECLARE @ID INT, @Name VARCHAR(50), @CrsID INT, @InsID INT, @Duration TINYINT, @QuestionCount INT
     SELECT @ID = ID, @Name = Name, @CrsID = CrsID, @InsID = InsID, @Duration = Duration, @QuestionCount = QuestionCount
     FROM inserted
     IF EXISTS (SELECT 1
